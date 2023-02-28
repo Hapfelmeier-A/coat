@@ -1,0 +1,19 @@
+Package: COAT
+Type: Package
+Title: Conditional Method Agreement Trees (COAT) and Forests
+Version: 0.1.0
+Date: 2023-02-23
+Authors@R: c(person("Alexander", "Hapfelmeier", role = c("aut", "cre"),
+                      email = "Alexander.Hapfelmeier@mri.tum.de"),
+             person("Siranush", "Karapetyan", role = c("aut"), 
+                      email = "Siranush.Karapetyan@mri.tum.de"))
+Description: Agreement of continuously scaled measurements made by two techniques, devices or methods is usually evaluated by the well-established Bland-Altman analysis or plot. COAT embeds the latter in the framework of recursive partitioning to explore heterogeneous method agreement in dependence of covariates. COAT can also be used to perform a two-sample Bland-Altman test for differences in method agreement.
+License: GPL-3
+Depends: R (>= 3.5.0)
+Imports: partykit, MethComp, ggplot2, strucchange, grid, ggparty, gridExtra
+Suggests: disttree
+Additional_repositories: http://R-Forge.R-project.org
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.2
+
