@@ -13,12 +13,16 @@
 #' @param ... further arguments passed to \code{\link[partykit]{ctree_control}}.
 #'
 #' @examples
+#' \dontshow{ if(!requireNamespace("MethComp")) {
+#'   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
+#'     stop("the MethComp package is required for this example but is not installed")
+#'   } else q() }
+#' }
 #' ### load package ###
 #' library("COAT")
 #'
 #' ### data ###
-#' require(MethComp)
-#' data(VitCap)
+#' data("VitCap", package = "MethComp")
 #' ## transform data to required 'wide' format
 #' VitCap_wide <- reshape(VitCap, v.names = "y", timevar = "instrument",
 #'                        idvar = c("item", "user"), drop = "meth", direction = "wide")
