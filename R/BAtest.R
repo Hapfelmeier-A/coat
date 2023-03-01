@@ -5,7 +5,7 @@
 #' @param y1 a numeric vector of measurements by one method.
 #' @param y2 a numeric vector of measurements by another method.
 #' @param groups a factor with two levels indicating the two independent groups or samples to be compared.
-#' @param x an object as returned by \code{\link[COAT]{BAtest}}.
+#' @param x an object as returned by \code{\link[coat]{BAtest}}.
 #' @param statistics a logical indicating whether plotting of test statistics is required.
 #' @param digits a numeric specifying the number of digits to display.
 #' @param xlim.max an optional numeric value to define the upper limit of the x-axis.
@@ -19,7 +19,7 @@
 #'   } else q() }
 #' }
 #' ### load package ###
-#' library("COAT")
+#' library("coat")
 #'
 #' ### data ###
 #' data("VitCap", package = "MethComp")
