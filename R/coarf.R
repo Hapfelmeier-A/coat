@@ -1,6 +1,6 @@
 #' Conditional Method Agreement Forests
 #'
-#' Function to model conditional method agreement by \code{\link[disttree]{distforest}}. See \code{\link[COAT]{coat}} for a respective tree implementation.
+#' Function to model conditional method agreement by \code{\link[disttree]{distforest}}. See \code{\link[coat]{coat}} for a respective tree implementation.
 #'
 #' @param y1 a character string specifying the variable in data containing the measurements by one method.
 #' @param y2 a character string specifying the variable in data containing the measurements by another method.
@@ -18,7 +18,7 @@
 #'   } else q() }
 #' }
 #' ### load package ###
-#' library("COAT")
+#' library("coat")
 #'
 #' ### data ###
 #' data("scint", package = "MethComp")
