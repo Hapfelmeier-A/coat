@@ -21,7 +21,7 @@ BAtest(y1, y2, groups, ...)
 
 \item{...}{further arguments passed to \code{\link[partykit]{ctree_control}}.}
 
-\item{x}{an object as returned by \code{\link[COAT]{BAtest}}.}
+\item{x}{an object as returned by \code{\link[coat]{BAtest}}.}
 
 \item{digits}{a numeric specifying the number of digits to display.}
 
@@ -41,11 +41,11 @@ Function to perform a two-sample Bland-Altman test for hypothesis testing of dif
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{print(BAtest)}: function to print the result of the Bland-Altman test.
+\item \code{print}: function to print the result of the Bland-Altman test.
 
-\item \code{plot(BAtest)}: function to plot the result of the Bland-Altman test.
-
+\item \code{plot}: function to plot the result of the Bland-Altman test.
 }}
+
 \examples{
 \dontshow{ if(!requireNamespace("MethComp")) {
   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
@@ -53,7 +53,7 @@ Function to perform a two-sample Bland-Altman test for hypothesis testing of dif
   } else q() }
 }
 ### load package ###
-library("COAT")
+library("coat")
 
 ### data ###
 data("VitCap", package = "MethComp")
@@ -67,9 +67,7 @@ testresult
 
 ### plot ###
 plot(testresult)
-## expand xlim to avoid overlapping labeling
-plot(testresult, digits = 2, xlim.max = 4800)
-## plot without table of statistics
+## without table of statistics and with expanded xlim to avoid overlapping labeling
 plot(testresult, digits = 2, statistics = FALSE, xlim.max = 4800)
 
 }

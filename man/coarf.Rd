@@ -2,7 +2,7 @@
 % Please edit documentation in R/coarf.R
 \name{coarf}
 \alias{coarf}
-\title{Conditional Method Agreement Forests}
+\title{Conditional method agreement forests}
 \usage{
 coarf(y1, y2, covars, data, means = FALSE, ...)
 }
@@ -23,7 +23,7 @@ coarf(y1, y2, covars, data, means = FALSE, ...)
 Object of class \code{distforest}.
 }
 \description{
-Function to model conditional method agreement by \code{\link[disttree]{distforest}}. See \code{\link[COAT]{coat}} for a respective tree implementation.
+Function to model conditional method agreement by \code{\link[disttree]{distforest}}. See \code{\link[coat]{coat}} for a respective tree implementation.
 }
 \details{
 See \code{\link[disttree]{distforest}} for implementation details.
@@ -35,7 +35,7 @@ See \code{\link[disttree]{distforest}} for implementation details.
   } else q() }
 }
 ### load package ###
-library("COAT")
+library("coat")
 
 ### data ###
 data("scint", package = "MethComp")
