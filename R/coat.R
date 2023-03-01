@@ -17,12 +17,16 @@
 #' @details The minimum number of observations required to model conditional agreement defaults to 20. Users may choose to modify this value as needed. See \code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}} for details.
 #'
 #' @examples
+#' \dontshow{ if(!requireNamespace("MethComp")) {
+#'   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
+#'     stop("the MethComp package is required for this example but is not installed")
+#'   } else q() }
+#' }
 #' ### load package ###
 #' library("COAT")
 #'
 #' ### data ###
-#' require(MethComp)
-#' data(scint)
+#' data("scint", package = "MethComp")
 #' ## transform data to required 'wide' format
 #' scint_wide <- reshape(scint, v.names = "y", timevar = "meth", idvar = "item", direction = "wide")
 #'
