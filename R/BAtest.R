@@ -33,9 +33,7 @@
 #'
 #' ### plot ###
 #' plot(testresult)
-#' ## expand xlim to avoid overlapping labeling
-#' plot(testresult, digits = 2, xlim.max = 4800)
-#' ## plot without table of statistics
+#' ## without table of statistics and with expanded xlim to avoid overlapping labeling
 #' plot(testresult, digits = 2, statistics = FALSE, xlim.max = 4800)
 #'
 #' @return Object of class \code{BAtest} with elements
