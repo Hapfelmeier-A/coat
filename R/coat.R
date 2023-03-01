@@ -1,14 +1,14 @@
-#' Conditional Method Agreement Trees (COAT)
+#' Conditional Method Agreement Trees (coat)
 #'
-#' Functions to fit and plot COAT models.
+#' Functions to fit and plot \code{coat} models.
 #'
 #' @param y1 a character string specifying the variable in data containing the measurements by one method.
 #' @param y2 a character string specifying the variable in data containing the measurements by another method.
 #' @param covars a character string or vector of a single or multiple covariates.
 #' @param data a data frame containing \code{y1}, \code{y2} and \code{covars}.
 #' @param means a logical indicating whether intraindividual mean values of measurements shall be included as covariate.
-#' @param type a character string specifying the type of COAT model to be fit. Either \code{"ctree"} (default), \code{"disttree"} (equals \code{"ctree"}) or \code{"mob"}.
-#' @param x an object as returned by \code{\link[COAT]{coat}}.
+#' @param type a character string specifying the type of coat model to be fit. Either \code{"ctree"} (default), \code{"disttree"} (equals \code{"ctree"}) or \code{"mob"}.
+#' @param x an object as returned by \code{\link[coat]{coat}}.
 #' @param digits a numeric specifying the number of digits to display.
 #' @param xlim.max an optional numeric value to define the upper limit of the x-axis.
 #' @param level a numeric specifying the desired coverage of the prediction interval.
@@ -23,14 +23,14 @@
 #'   } else q() }
 #' }
 #' ### load package ###
-#' library("COAT")
+#' library("coat")
 #'
 #' ### data ###
 #' data("scint", package = "MethComp")
 #' ## transform data to required 'wide' format
 #' scint_wide <- reshape(scint, v.names = "y", timevar = "meth", idvar = "item", direction = "wide")
 #'
-#' ### fit COAT using ctree() ###
+#' ### fit coat model using ctree() ###
 #' mytree1 <- coat("y.DTPA", "y.DMSA", c("age", "sex"), data = scint_wide)
 #' ## including mean values as predictor
 #' mytree2 <- coat("y.DTPA", "y.DMSA", c("age", "sex"), data = scint_wide, means = TRUE)
@@ -40,7 +40,7 @@
 #' plot(mytree1, digits = 2, xlim.max = 120)
 #' plot(mytree2, digits = 2, xlim.max = 120)
 #'
-#' @return Object of class \code{COAT}.
+#' @return Object of class \code{coat}.
 #'
 #' @importFrom stats as.formula dnorm lm lm.fit qnorm sd
 #' @importFrom ggplot2 aes geom_hline geom_label geom_point theme_bw xlab ylab xlim
@@ -81,14 +81,14 @@ coat <- function(y1, y2, covars, data, means = FALSE, type = c("ctree", "disttre
   model$data$means. <- moddat$means.
 
   # define class of returned object
-  class(model) <- c("COAT", class(model))
+  class(model) <- c("coat", class(model))
 
   return(model)
 }
 
-#' @describeIn coat function to plot a COAT model.
+#' @describeIn coat function to plot a coat model.
 #' @export
-plot.COAT <- function(x, digits = 2, xlim.max = NULL, level = 0.95, ...) {
+plot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, ...) {
   diffs. <- id <- means. <- nodesize <-  p.value <- splitvar <- NULL # due to NSE notes in R CMD check
 
   if (is.null(xlim.max)) xlim.max <- max(x$data$means.)
