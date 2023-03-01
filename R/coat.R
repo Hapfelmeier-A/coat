@@ -1,4 +1,4 @@
-#' Conditional Method Agreement Trees (coat)
+#' Conditional method agreement trees (coat)
 #'
 #' Functions to fit and plot \code{coat} models.
 #'
