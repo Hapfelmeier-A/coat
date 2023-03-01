@@ -1,5 +1,4 @@
 Package: COAT
-Type: Package
 Title: Conditional Method Agreement Trees (COAT) and Forests
 Version: 0.1.0
 Date: 2023-02-23
@@ -12,7 +11,6 @@ License: GPL-3
 Depends: R (>= 3.5.0)
 Imports: partykit, ggplot2, strucchange, grid, ggparty, gridExtra
 Suggests: disttree, MethComp
-Additional_repositories: http://R-Forge.R-project.org
+Additional_repositories: https://R-Forge.R-project.org
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.2.3
