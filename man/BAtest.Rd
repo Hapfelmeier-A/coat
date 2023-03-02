@@ -41,11 +41,11 @@ Function to perform a two-sample Bland-Altman test for hypothesis testing of dif
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{print}: function to print the result of the Bland-Altman test.
+\item \code{print(BAtest)}: function to print the result of the Bland-Altman test.
 
-\item \code{plot}: function to plot the result of the Bland-Altman test.
+\item \code{plot(BAtest)}: function to plot the result of the Bland-Altman test.
+
 }}
-
 \examples{
 \dontshow{ if(!requireNamespace("MethComp")) {
   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {

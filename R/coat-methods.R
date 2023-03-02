@@ -1,7 +1,9 @@
-#' @describeIn coat function to extract coefficients from a coat model.
+#' @rdname coat
+#' @method coef coat
+#' @export
+#' @usage NULL
 #' @importFrom stats coef qnorm weighted.mean
 #' @importFrom partykit data_party nodeapply nodeids
-#' @export
 coef.coat <- function(object, node = NULL, drop = TRUE, ...) {
   if (is.null(node)) node <- nodeids(object, terminal = TRUE)
   cf <- if (inherits(object, "modelparty")) {
@@ -21,11 +23,12 @@ coef.coat <- function(object, node = NULL, drop = TRUE, ...) {
   if (drop) drop(cf) else cf
 }
 
-#' @describeIn coat panel function to plot a coat model.
+#' @rdname coat
+#' @export
+#' @usage NULL
 #' @importFrom stats coef qnorm weighted.mean
 #' @importFrom partykit id_node data_party info_node
-#' @importFrom grid viewport gpar grid.clip grid.layout grid.lines grid.points grid.rect grid.text grid.xaxis grid.yaxis pushViewport popViewport unit
-#' @export
+#' @importFrom grid viewport gpar grid.clip grid.layout grid.lines grid.points grid.rect grid.text grid.xaxis grid.yaxis pushViewport popViewport upViewport unit
 node_baplot <- function(obj,
                         col = 1,
                         linecol = 4,
