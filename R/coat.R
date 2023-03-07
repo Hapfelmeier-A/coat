@@ -110,8 +110,7 @@ plot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, ...) {
                                  geom_label(aes(x = xlim.max * 0.95, y = mean_diff[id] + qnorm(level)*sd_diff[id], label = round(mean_diff[id] + qnorm(level)*sd_diff[id], digits)), col = "blue"),
                                  geom_label(aes(x = xlim.max * 0.95, y = mean_diff[id] - qnorm(level)*sd_diff[id], label = round(mean_diff[id] - qnorm(level)*sd_diff[id], digits)), col = "blue"),
                                  theme_bw(base_size = 10), xlab("Mean values"), ylab("Differences"),
-                                 xlim(NA, xlim.max)),
-                   shared_axis_labels = TRUE, legend_separator = TRUE) +
+                                 xlim(NA, xlim.max))) +
 
       geom_node_label(line_list = list(aes(label = splitvar),
                                        aes(label = paste("p = ", round(p.value, 3)))),
