@@ -86,6 +86,16 @@ coat <- function(y1, y2, covars, data, means = FALSE, type = c("ctree", "disttre
   return(model)
 }
 
+#' @describeIn coat function to print a coat model.
+#' @export
+print.coat <- function(x, digits = 2, ...) {
+  if (inherits(x, "modelparty")) {
+    x <- partykit::as.constparty(x)
+  }
+  
+  partykit:::print.constparty(x, FUN = function(y1, w, digits) paste(c("Bias =", "SD ="), round(c(mean(y1), sd(y1)), digits), collapse = ", "), ...)
+}
+                              
 #' @describeIn coat function to plot a coat model.
 #' @export
 plot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, ...) {
