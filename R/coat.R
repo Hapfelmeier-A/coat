@@ -93,7 +93,7 @@ print.coat <- function(x, digits = 2, ...) {
     x <- partykit::as.constparty(x)
   }
   
-  partykit:::print.constparty(x, FUN = function(y1, w, digits) paste(c("Bias =", "SD ="), round(c(mean(y1), sd(y1)), digits), collapse = ", "), ...)
+  partykit:::print.constparty(x, FUN = function(y1, w, digits) paste(c("Bias =", "SD ="), round(c(mean(y1), sd(y1)), digits), collapse = ", "), digits, ...)
 }
                               
 #' @describeIn coat function to plot a coat model.
