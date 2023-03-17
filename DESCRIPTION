@@ -11,7 +11,7 @@ Authors@R: c(person("Alexander", "Hapfelmeier", role = c("aut", "cre"),
 Description: Agreement of continuously scaled measurements made by two techniques, devices or methods is usually evaluated by the well-established Bland-Altman analysis or plot. coat embeds the latter in the framework of recursive partitioning to explore heterogeneous method agreement in dependence of covariates. coat can also be used to perform a two-sample Bland-Altman test for differences in method agreement.
 License: GPL-2 | GPL-3
 Depends: R (>= 3.5.0)
-Imports: partykit, ggplot2, strucchange, grid, ggparty, gridExtra
+Imports: partykit, ggplot2, strucchange, grid, ggparty, gridExtra, ggtext
 Suggests: disttree, MethComp
 Additional_repositories: https://R-Forge.R-project.org
 Encoding: UTF-8
