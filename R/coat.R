@@ -44,8 +44,9 @@
 #' @return Object of class \code{coat}.
 #'
 #' @importFrom stats as.formula dnorm lm lm.fit qnorm sd
-#' @importFrom ggplot2 aes geom_hline geom_label geom_point theme_bw xlab ylab xlim
+#' @importFrom ggplot2 ggplot aes geom_hline geom_label geom_point theme_bw xlab ylab xlim theme ggtitle margin
 #' @importFrom gridExtra arrangeGrob grid.arrange tableGrob ttheme_minimal
+#' @importFrom ggtext element_markdown
 #' @importFrom ggparty ggparty geom_edge geom_edge_label geom_node_label geom_node_plot geom_node_splitvar
 #' @importFrom grid textGrob gpar
 #'
