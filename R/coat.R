@@ -94,8 +94,8 @@ print.coat <- function(x, digits = 2, ...) {
   if (inherits(x, "modelparty")) {
     x <- partykit::as.constparty(x)
   }
-  
-  partykit:::print.constparty(x, FUN = function(y1, w, digits) paste(c("Bias =", "SD ="), round(c(mean(y1), sd(y1)), digits), collapse = ", "), digits, ...)
+  print_exp <- utils::getFromNamespace("print.constparty", "partykit")
+  print_exp(x, FUN = function(y1, w, digits) paste(c("Bias =", "SD ="), round(c(mean(y1), sd(y1)), digits), collapse = ", "), digits, ...)
 }
                               
 #' @describeIn coat function to plot a coat model.
