@@ -12,6 +12,7 @@
 #' @param digits a numeric specifying the number of digits to display.
 #' @param xlim.max an optional numeric value to define the upper limit of the x-axis.
 #' @param level a numeric specifying the desired coverage of the prediction interval.
+#' @param label.align a numeric between 0 and 1 specifying the alignment of labels relative to the plot width or \code{xlim.max}.
 #' @param ... further arguments passed to \code{\link[partykit]{ctree_control}} or the fit function of \code{\link[partykit]{mob}}.
 #'
 #' @details The minimum number of observations required to model conditional agreement defaults to 20. Users may choose to modify this value as needed. See \code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}} for details.
@@ -98,30 +99,46 @@ print.coat <- function(x, digits = 2, ...) {
                               
 #' @describeIn coat function to plot a coat model.
 #' @export
-plot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, ...) {
+plot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, label.align = 0.95, ...) {
   diffs. <- id <- means. <- nodesize <-  p.value <- splitvar <- NULL # due to NSE notes in R CMD check
-
+  
   if (is.null(xlim.max)) xlim.max <- max(x$data$means.)
   level <- 1 - (1 - level)/2
-
-  p1 <- ggparty(x, terminal_space = 0.5)
-  mean_diff <- sapply(p1$data$nodedata_diffs., mean)
-  sd_diff <- sapply(p1$data$nodedata_diffs., sd)
-
-  p1 + geom_edge() +
-    geom_edge_label() +
-    geom_node_splitvar() +
-    geom_node_plot(gglist = list(aes(x = means., y = diffs.),
-                                 geom_point(alpha = 0.8),
-                                 geom_hline(aes(yintercept = mean_diff[id]), col = "blue"),
-                                 geom_hline(aes(yintercept = mean_diff[id] + qnorm(level)*sd_diff[id]), col = "blue", linetype = "dashed"),
-                                 geom_hline(aes(yintercept = mean_diff[id] - qnorm(level)*sd_diff[id]), col = "blue", linetype = "dashed"),
-                                 geom_label(aes(x = xlim.max * 0.95, y = mean_diff[id], label = round(mean_diff[id], digits)), col = "blue"),
-                                 geom_label(aes(x = xlim.max * 0.95, y = mean_diff[id] + qnorm(level)*sd_diff[id], label = round(mean_diff[id] + qnorm(level)*sd_diff[id], digits)), col = "blue"),
-                                 geom_label(aes(x = xlim.max * 0.95, y = mean_diff[id] - qnorm(level)*sd_diff[id], label = round(mean_diff[id] - qnorm(level)*sd_diff[id], digits)), col = "blue"),
-                                 theme_bw(base_size = 10), xlab("Mean values"), ylab("Differences"),
-                                 xlim(NA, xlim.max))) +
-
+  
+  if (length(x) == 1) {
+    p1 <- ggplot(data_party(x), aes(x = means., y = diffs.))
+    mean_diff <- mean(p1$data$diffs.)
+    sd_diff <- sd(p1$data$diffs.)
+    
+    p2 <- p1 + geom_point(alpha = 0.8) + 
+      geom_hline(aes(yintercept = mean_diff), col = "blue") + 
+      geom_hline(aes(yintercept = mean_diff + qnorm(level)*sd_diff), col = "blue", linetype = "dashed") + 
+      geom_hline(aes(yintercept = mean_diff - qnorm(level)*sd_diff), col = "blue", linetype = "dashed") + 
+      geom_label(aes(x = xlim.max * label.align, y = mean_diff, label = round(mean_diff, digits)), col = "blue") +
+      geom_label(aes(x = xlim.max * label.align, y = mean_diff + qnorm(level)*sd_diff, label = round(mean_diff + qnorm(level)*sd_diff, digits)), col = "blue") + 
+      geom_label(aes(x = xlim.max * label.align, y = mean_diff - qnorm(level)*sd_diff, label = round(mean_diff - qnorm(level)*sd_diff, digits)), col = "blue") + 
+      theme_bw(base_size = 10) + xlab("Mean values") + ylab("Differences") + xlim(NA, xlim.max)
+    p2 + ggtitle(paste0("Node ", 1, ", N = ", length(p1$data$diffs.))) + 
+      theme(plot.title = element_markdown(hjust = 0.5, linetype = 1, padding = unit(0.25, "lines"), r = grid::unit(0.15, "lines"), margin = margin(0, 0, 0, 0)))
+  } else {
+    p1 <- ggparty(x, terminal_space = 0.5)
+    mean_diff <- sapply(p1$data$nodedata_diffs., mean)
+    sd_diff <- sapply(p1$data$nodedata_diffs., sd)
+    
+    p1 + geom_edge() +
+      geom_edge_label() +
+      geom_node_splitvar() +
+      geom_node_plot(gglist = list(aes(x = means., y = diffs.),
+                                   geom_point(alpha = 0.8),
+                                   geom_hline(aes(yintercept = mean_diff[id]), col = "blue"),
+                                   geom_hline(aes(yintercept = mean_diff[id] + qnorm(level)*sd_diff[id]), col = "blue", linetype = "dashed"),
+                                   geom_hline(aes(yintercept = mean_diff[id] - qnorm(level)*sd_diff[id]), col = "blue", linetype = "dashed"),
+                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id], label = round(mean_diff[id], digits)), col = "blue"),
+                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id] + qnorm(level)*sd_diff[id], label = round(mean_diff[id] + qnorm(level)*sd_diff[id], digits)), col = "blue"),
+                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id] - qnorm(level)*sd_diff[id], label = round(mean_diff[id] - qnorm(level)*sd_diff[id], digits)), col = "blue"),
+                                   theme_bw(base_size = 10), xlab("Mean values"), ylab("Differences"),
+                                   xlim(NA, xlim.max))) +
+      
       geom_node_label(line_list = list(aes(label = splitvar),
                                        aes(label = paste("p = ", round(p.value, 3)))),
                       line_gpar = list(list(size = 12, col = "black"),
@@ -130,6 +147,5 @@ plot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, ...) {
       geom_node_label(aes(label = paste0("Node ", id, ", N = ", nodesize)),
                       size = 4, nudge_x = 0.02, nudge_y = 0.01,
                       ids = "terminal")
+  }
 }
-
-
