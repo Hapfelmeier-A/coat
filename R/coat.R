@@ -32,9 +32,9 @@
 #' scint_wide <- reshape(scint, v.names = "y", timevar = "meth", idvar = "item", direction = "wide")
 #'
 #' ### fit coat model using ctree() ###
-#' mytree1 <- coat("y.DTPA", "y.DMSA", c("age", "sex"), data = scint_wide)
+#' mytree1 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide)
 #' ## including mean values as predictor
-#' mytree2 <- coat("y.DTPA", "y.DMSA", c("age", "sex"), data = scint_wide, means = TRUE)
+#' mytree2 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide, means = TRUE)
 #'
 #' ### plot ###
 #' plot(mytree1)
@@ -51,57 +51,101 @@
 #' @importFrom grid textGrob gpar
 #'
 #' @export
-coat <- function(y1, y2, covars, data, means = FALSE, type = c("ctree", "disttree", "mob")[1], ...) {
+coat <- function(formula, data, subset, na.action, weights, means = FALSE, type = c("ctree", "disttree", "mob"), ...)
+{
+  ## type of tree
+  type <- match.arg(tolower(type), c("ctree", "disttree", "mob"))
 
-  # create model data
-  moddat <- data.frame(data, "means." = rowMeans(data[, c(y1, y2)]))
+  ## keep call
+  cl <- match.call(expand.dots = TRUE)
 
-  # create outcome
-  moddat$diffs. <- moddat[, y1] - moddat[, y2]
+  ## preparation of ctree/mob call
+  m <- match.call(expand.dots = FALSE)
+  if(missing(na.action)) m$na.action <- na.omit
 
-  # remove missing values
-  if (any(is.na(moddat[, c("diffs.", covars)]))) {
-    moddat <- moddat[!apply(moddat[, c("diffs.", covars)], 1, function(x) any(is.na(x))), ]
-    warning("Observations with missing values have been removed.")
+  ## if desired "means(y1, y2)" is added as split variable
+  if(means) {
+    formula <- update(formula, . ~ `_means_` + .)
+    formula[[3L]][[2L]] <- formula[[2]]
+    formula[[3L]][[2L]][[1L]] <- as.name("means")
+    m$formula <- formula
   }
 
-  # create model formula
-  if (means) {
-    model.formula <- as.formula(paste("diffs. ~ means. + ", paste(covars, collapse = " + ")))
+  ## update/remove processed arguments
+  m$means <- NULL
+  m$type <- NULL
+
+  ## add fit/trafo function
+  if(type == "mob") {
+    m[[1L]] <- as.call(quote(partykit::mob))
+    m$fit <- bafit
+    m$control <- partykit::mob_control(...)
+    m$control$ytype <- "matrix"
   } else {
-    model.formula <- as.formula(paste("diffs. ~ ", paste(covars, collapse = " + ")))
+    m[[1L]] <- as.call(quote(partykit::ctree))
+    m$ytrafo <- batrafo
+    m$control <- partykit::ctree_control(...)
   }
 
-  # fit the tree model
-  if (type == "mob") {
-    model <- partykit::mob(model.formula, data = moddat, fit = gaussfit, ...)
-  } else {
-    model <- partykit::ctree(model.formula, data = moddat, ytrafo = meanvar, ...)
+  ## fit tree
+  rval <- eval(m, parent.frame())
+  
+  ## unify output
+  rval$info$call <- cl
+  class(rval) <- c("coat", class(rval))
+  if(type == "mob") {
+    rval$fitted[["(weights)"]] <- model.weights(rval$data)
+    if(is.null(rval$fitted[["(weights)"]])) rval$fitted[["(weights)"]] <- 1
+    rval$fitted[["(response)"]] <- rval$data[, attr(rval$info$terms$response, "term.labels"), drop = FALSE]
   }
-
-  # Update data with means
-  model$data$means. <- moddat$means.
-
-  # define class of returned object
-  class(model) <- c("coat", class(model))
-
-  return(model)
+  return(rval)
 }
 
 #' @describeIn coat function to print a coat model.
 #' @export
-print.coat <- function(x, digits = 2, ...) {
-  if (inherits(x, "modelparty")) {
-    x <- partykit::as.constparty(x)
-  }
-  print_exp <- utils::getFromNamespace("print.constparty", "partykit")
-  print_exp(x, FUN = function(y1, w, digits) paste(c("Bias =", "SD ="), round(c(mean(y1), sd(y1)), digits), collapse = ", "), digits, ...)
+print.coat <- function(x, FUN = NULL, digits = 2L,
+  header = TRUE, footer = TRUE, title = "Conditional method agreement tree (COAT)", ...)
+{
+  header_panel <- if(header) function(party) {      
+    c(title, "", "Model formula:", deparse(party$info$call$formula), "", "Fitted party:", "")
+  } else function(party) ""
+  
+  footer_panel <- if(footer) function(party) {
+    n <- width(party)
+    n <- format(c(length(party) - n, n))
+    c("", paste("Number of inner nodes:   ", n[1L]),
+      paste("Number of terminal nodes:", n[2L]), "")
+  } else function (party) ""
+
+  node_labs <- nodeapply(x, nodeids(x), function(node) {
+    y <- node$fitted[["(response)"]]
+    y <- y[, 1L] - y[, 2L]
+    w <- node$fitted[["(weights)"]]
+    if (is.null(w)) w <- rep.int(1, NROW(y))
+    m <- weighted.mean(y, w)
+    s <- sqrt(weighted.mean((y - m)^2, w))
+    paste(c("Bias =", "SD ="), format(round(c(m, s), digits = digits), nsmall = digits), collapse = ", ")
+  }, by_node = FALSE)
+
+  terminal_panel <- function(node) paste(":", node_labs[[id_node(node)]])
+
+  print.party(x, terminal_panel = terminal_panel, header_panel = header_panel, footer_panel = footer_panel, ...)
+  invisible(x)
 }
                               
 #' @describeIn coat function to plot a coat model.
 #' @export
-plot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, label.align = 0.95, ...) {
+plot.coat <- function(x, terminal_panel = node_baplot, tnex = 2, drop_terminal = TRUE, ...) {
+  partykit::plot.party(x, terminal_panel = terminal_panel, tnex = tnex, drop_terminal = drop_terminal, ...)
+}
+
+autoplot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, label.align = 0.95, ...) {
   diffs. <- id <- means. <- nodesize <-  p.value <- splitvar <- NULL # due to NSE notes in R CMD check
+  
+  ## augment data
+  y <- x$fitted[["(response)"]]
+  x$data$means. <- (y[, 1L] + y[, 2L])/2
+  x$data$diffs. <- y[, 1L] - y[, 2L]
   
   if (is.null(xlim.max)) xlim.max <- max(x$data$means.)
   level <- 1 - (1 - level)/2
@@ -112,12 +156,12 @@ plot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, label.align 
     sd_diff <- sd(p1$data$diffs.)
     
     p2 <- p1 + geom_point(alpha = 0.8) + 
-      geom_hline(aes(yintercept = mean_diff), col = "blue") + 
-      geom_hline(aes(yintercept = mean_diff + qnorm(level)*sd_diff), col = "blue", linetype = "dashed") + 
-      geom_hline(aes(yintercept = mean_diff - qnorm(level)*sd_diff), col = "blue", linetype = "dashed") + 
-      geom_label(aes(x = xlim.max * label.align, y = mean_diff, label = round(mean_diff, digits)), col = "blue") +
-      geom_label(aes(x = xlim.max * label.align, y = mean_diff + qnorm(level)*sd_diff, label = round(mean_diff + qnorm(level)*sd_diff, digits)), col = "blue") + 
-      geom_label(aes(x = xlim.max * label.align, y = mean_diff - qnorm(level)*sd_diff, label = round(mean_diff - qnorm(level)*sd_diff, digits)), col = "blue") + 
+      geom_hline(aes(yintercept = mean_diff), col = 4) + 
+      geom_hline(aes(yintercept = mean_diff + qnorm(level)*sd_diff), col = 4, linetype = "dashed") + 
+      geom_hline(aes(yintercept = mean_diff - qnorm(level)*sd_diff), col = 4, linetype = "dashed") + 
+      geom_label(aes(x = xlim.max * label.align, y = mean_diff, label = round(mean_diff, digits)), col = 4) +
+      geom_label(aes(x = xlim.max * label.align, y = mean_diff + qnorm(level)*sd_diff, label = round(mean_diff + qnorm(level)*sd_diff, digits)), col = 4) + 
+      geom_label(aes(x = xlim.max * label.align, y = mean_diff - qnorm(level)*sd_diff, label = round(mean_diff - qnorm(level)*sd_diff, digits)), col = 4) + 
       theme_bw(base_size = 10) + xlab("Mean values") + ylab("Differences") + xlim(NA, xlim.max)
     p2 + ggtitle(paste0("Node ", 1, ", N = ", length(p1$data$diffs.))) + 
       theme(plot.title = element_markdown(hjust = 0.5, linetype = 1, padding = unit(0.25, "lines"), r = grid::unit(0.15, "lines"), margin = margin(0, 0, 0, 0)))
@@ -131,12 +175,12 @@ plot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, label.align 
       geom_node_splitvar() +
       geom_node_plot(gglist = list(aes(x = means., y = diffs.),
                                    geom_point(alpha = 0.8),
-                                   geom_hline(aes(yintercept = mean_diff[id]), col = "blue"),
-                                   geom_hline(aes(yintercept = mean_diff[id] + qnorm(level)*sd_diff[id]), col = "blue", linetype = "dashed"),
-                                   geom_hline(aes(yintercept = mean_diff[id] - qnorm(level)*sd_diff[id]), col = "blue", linetype = "dashed"),
-                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id], label = round(mean_diff[id], digits)), col = "blue"),
-                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id] + qnorm(level)*sd_diff[id], label = round(mean_diff[id] + qnorm(level)*sd_diff[id], digits)), col = "blue"),
-                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id] - qnorm(level)*sd_diff[id], label = round(mean_diff[id] - qnorm(level)*sd_diff[id], digits)), col = "blue"),
+                                   geom_hline(aes(yintercept = mean_diff[id]), col = 4),
+                                   geom_hline(aes(yintercept = mean_diff[id] + qnorm(level)*sd_diff[id]), col = 4, linetype = "dashed"),
+                                   geom_hline(aes(yintercept = mean_diff[id] - qnorm(level)*sd_diff[id]), col = 4, linetype = "dashed"),
+                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id], label = round(mean_diff[id], digits)), col = 4),
+                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id] + qnorm(level)*sd_diff[id], label = round(mean_diff[id] + qnorm(level)*sd_diff[id], digits)), col = 4),
+                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id] - qnorm(level)*sd_diff[id], label = round(mean_diff[id] - qnorm(level)*sd_diff[id], digits)), col = 4),
                                    theme_bw(base_size = 10), xlab("Mean values"), ylab("Differences"),
                                    xlim(NA, xlim.max))) +
       

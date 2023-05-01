@@ -12,6 +12,7 @@ coef.coat <- function(object, node = NULL, drop = TRUE, ...) {
     lapply(node, function(n) {
       dat <- data_party(object, n)
       yn <- dat[["(response)"]]
+      yn <- yn[, 1L] - yn[, 2L]
       wn <- dat[["(weights)"]]
       if(is.null(wn)) wn <- rep.int(1, length(yn))
       mv <- c("(Intercept)" = weighted.mean(yn, wn))
@@ -45,8 +46,9 @@ node_baplot <- function(obj,
 			gp = gpar())
 {
     ## means and differences
-    x <- obj$data[["means."]]
-    y <- obj$data[["diffs."]]
+    y <- obj$fitted[["(response)"]]
+    x <- (y[, 1L] + y[, 2L])/2
+    y <- y[, 1L] - y[, 2L]
     stopifnot(is.numeric(x), is.numeric(y))
 
     ## limits of agreement
@@ -62,8 +64,9 @@ node_baplot <- function(obj,
         ## extract data
 	nid <- id_node(node)
 	dat <- data_party(obj, nid)
-        xn <- dat[["means."]]
-	yn <- dat[["diffs."]]
+        yn <- dat[["(response)"]]
+        xn <- (yn[, 1L] + yn[, 2L])/2
+	yn <- yn[, 1L] - yn[, 2L]
 	wn <- dat[["(weights)"]]
 	if(is.null(wn)) wn <- rep.int(1, length(yn))
 
