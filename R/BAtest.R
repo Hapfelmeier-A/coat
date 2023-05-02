@@ -1,4 +1,4 @@
-#' Two-sample Bland-Altman test of method agreement
+#' Two-Sample Bland-Altman Test of Method Agreement
 #'
 #' Function to perform a two-sample Bland-Altman test for hypothesis testing of differences in method agreement. Additional functions are given for printing and plotting.
 #'

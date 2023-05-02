@@ -1,3 +1,43 @@
+#' Convenience Functions for Bland-Altman Analysis
+#'
+#' Auxiliary functions for obtain the differences and means of a measurement
+#' pair, as used in the classic Bland-Altman analysis.
+#'
+#' @param y1,y2 numeric. Vectors of numeric measurements of the same length.
+#'
+#' @return Numeric vector with the differences or means of \code{y1} and \code{y2},
+#' respectively.
+#'
+#' @examples
+#' ## pair of measurements
+#' y1 <- 1:4
+#' y2 <- c(2, 2, 1, 3)
+#' 
+#' ## differences and means
+#' diffs(y1, y2)
+#' means(y1, y2)
+
+#' @export
+diffs <- function(y1, y2) {
+  if(NCOL(y1) != 1L || NCOL(y2) != 1L || NROW(y1) != NROW(y2)) {
+    stop("'y1' and 'y2' must be a pair of univariate measurements of the same length")
+  }
+  if(!is.numeric(y1)) y1 <- as.numeric(y1)
+  if(!is.numeric(y2)) y2 <- as.numeric(y2)
+  return(y1 - y2)
+}
+
+#' @export
+means <- function(y1, y2) {
+  if(NCOL(y1) != 1L || NCOL(y2) != 1L || NROW(y1) != NROW(y2)) {
+    stop("'y1' and 'y2' must be a pair of univariate measurements of the same length")
+  }
+  if(!is.numeric(y1)) y1 <- as.numeric(y1)
+  if(!is.numeric(y2)) y2 <- as.numeric(y2)
+  return((y1 + y2)/2)
+}
+
+
 #' Transformation function used in \code{\link[partykit]{ctree}} to model the mean and variance as bivariate outcome. See \code{ytrafo} in \code{\link[partykit]{ctree}} for details.
 #' @noRd
 meanvar <- function(data, weights, control, ...) {
@@ -61,22 +101,4 @@ bafit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ...,
     estfun = if(estfun) cbind(m$residuals/s2 * x, "(Variance)" = (m$residuals^2 - s2)/(2 * s2^2)) else NULL,
     object = if(object) lm(y ~ 0 + x) else NULL
   )
-}
-
-diffs <- function(y1, y2) {
-  if(NCOL(y1) != 1L || NCOL(y2) != 1L || NROW(y1) != NROW(y2)) {
-    stop("'y1' and 'y2' must be a pair of univariate measurements of the same length")
-  }
-  if(!is.numeric(y1)) y1 <- as.numeric(y1)
-  if(!is.numeric(y2)) y2 <- as.numeric(y2)
-  return(y1 - y2)
-}
-
-means <- function(y1, y2) {
-  if(NCOL(y1) != 1L || NCOL(y2) != 1L || NROW(y1) != NROW(y2)) {
-    stop("'y1' and 'y2' must be a pair of univariate measurements of the same length")
-  }
-  if(!is.numeric(y1)) y1 <- as.numeric(y1)
-  if(!is.numeric(y2)) y2 <- as.numeric(y2)
-  return((y1 + y2)/2)
 }
