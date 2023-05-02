@@ -2,9 +2,12 @@
 % Please edit documentation in R/utils.R
 \name{diffs}
 \alias{diffs}
+\alias{means}
 \title{Convenience Functions for Bland-Altman Analysis}
 \usage{
 diffs(y1, y2)
+
+means(y1, y2)
 }
 \arguments{
 \item{y1, y2}{numeric. Vectors of numeric measurements of the same length.}

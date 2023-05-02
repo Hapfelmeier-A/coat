@@ -17,6 +17,7 @@
 #' diffs(y1, y2)
 #' means(y1, y2)
 
+#' @rdname diffs
 #' @export
 diffs <- function(y1, y2) {
   if(NCOL(y1) != 1L || NCOL(y2) != 1L || NROW(y1) != NROW(y2)) {
@@ -27,6 +28,7 @@ diffs <- function(y1, y2) {
   return(y1 - y2)
 }
 
+#' @rdname diffs
 #' @export
 means <- function(y1, y2) {
   if(NCOL(y1) != 1L || NCOL(y2) != 1L || NROW(y1) != NROW(y2)) {

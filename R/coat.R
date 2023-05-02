@@ -48,7 +48,7 @@
 #' @return Object of class \code{coat}, inheriting either from \code{constparty} (if \code{\link[partykit]{ctree}}
 #' is used) or \code{modelparty} (if \code{\link[partykit]{mob}} is used).
 #'
-#' @importFrom stats update weighted.mean
+#' @importFrom stats model.weights na.omit update weighted.mean
 #' @importFrom partykit ctree_control mob_control
 #'
 #' @export

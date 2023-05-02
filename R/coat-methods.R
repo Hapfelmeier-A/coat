@@ -89,7 +89,7 @@
 #' @rdname coat-methods
 #' @method print coat
 #' @export
-#' @importFrom partykit nodeapply nodeids print.party
+#' @importFrom partykit nodeapply nodeids print.party width
 #' @importFrom stats weighted.mean
 print.coat <- function(x, digits = 2L,
   header = TRUE, footer = TRUE, title = "Conditional method agreement tree (COAT)", ...)

@@ -1,7 +1,7 @@
 Package: coat
 Title: Conditional Method Agreement Trees (COAT) and Forests
-Version: 0.1.0
-Date: 2023-03-01
+Version: 0.2.0
+Date: 2023-05-02
 Authors@R: c(person("Alexander", "Hapfelmeier", role = c("aut", "cre"),
                       email = "Alexander.Hapfelmeier@mri.tum.de", comment = c(ORCID = "0000-0001-6765-6352")),
              person("Siranush", "Karapetyan", role = "aut", 
