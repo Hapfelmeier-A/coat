@@ -1,4 +1,4 @@
-#' Conditional method agreement forests
+#' Conditional Method Agreement Forests
 #'
 #' Function to model conditional method agreement by \code{\link[disttree]{distforest}}. See \code{\link[coat]{coat}} for a respective tree implementation.
 #'

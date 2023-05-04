@@ -2,7 +2,7 @@
 % Please edit documentation in R/coarf.R
 \name{coarf}
 \alias{coarf}
-\title{Conditional method agreement forests}
+\title{Conditional Method Agreement Forests}
 \usage{
 coarf(y1, y2, covars, data, means = FALSE, ...)
 }

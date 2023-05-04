@@ -4,7 +4,7 @@
 \alias{BAtest}
 \alias{print.BAtest}
 \alias{plot.BAtest}
-\title{Two-sample Bland-Altman test of method agreement}
+\title{Two-Sample Bland-Altman Test of Method Agreement}
 \usage{
 BAtest(y1, y2, groups, ...)
 
