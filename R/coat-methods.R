@@ -1,6 +1,6 @@
 #' Methods for Conditional Method Agreement Trees (COAT)
 #'
-#' Extracting information from or visualization of conditional method agreement trees
+#' Extracting information from or visualization of conditional method agreement trees.
 #' Visualizations use trees with Bland-Altman plots in terminal nodes, drawn either
 #' via grid graphics directly or via ggplot2.
 #'
@@ -33,7 +33,7 @@
 #' relative to the inner nodes (default is twice the size).
 #' @param drop_terminal logical. Should all terminal nodes be "dropped" to
 #' the bottom row?
-#' @param level numeric confidence level for the limits of agreement.
+#' @param level numeric level for the limits of agreement.
 #' @param pch,cex,col,linecol,lty,bg graphical parameters for the scatter plot and limits
 #' of agreement in the Bland-Altman plot (scatter plot character, character extension, plot color,
 #' line color, line types, and background color).
