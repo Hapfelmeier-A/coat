@@ -1,6 +1,6 @@
 #' Bland-Altman Test of Method Agreement
 #'
-#' Function to perform a Bland-Altman test for hypothesis testing of differences in method agreement. Additional functions are given for printing and plotting.
+#' Function to perform a Bland-Altman test of differences in method agreement. Additional functions are given for printing and plotting.
 #'
 #' @param formula symbolic description of the model used to perform the Bland-Altman test of type \code{y1 + y2 ~ x}.
 #' The left-hand side should specify a pair of measurements (\code{y1} and \code{y2}) to assess the agreement.
