@@ -1,1 +1,3 @@
 coat\.Rproj
+^R/coarf\.R$
+^man/coarf\.Rd$

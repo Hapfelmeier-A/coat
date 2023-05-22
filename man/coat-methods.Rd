@@ -71,7 +71,7 @@ relative to the inner nodes (default is twice the size).}
 \item{drop_terminal}{logical. Should all terminal nodes be "dropped" to
 the bottom row?}
 
-\item{level}{numeric confidence level for the limits of agreement.}
+\item{level}{numeric level for the limits of agreement.}
 
 \item{pch, cex, col, linecol, lty, bg}{graphical parameters for the scatter plot and limits
 of agreement in the Bland-Altman plot (scatter plot character, character extension, plot color,
@@ -96,7 +96,7 @@ a character or a \code{function(id, nobs)}.}
 relative to the plot width or \code{xlim.max}.}
 }
 \description{
-Extracting information from or visualization of conditional method agreement trees
+Extracting information from or visualization of conditional method agreement trees.
 Visualizations use trees with Bland-Altman plots in terminal nodes, drawn either
 via grid graphics directly or via ggplot2.
 }

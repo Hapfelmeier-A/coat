@@ -11,7 +11,7 @@ coat(
   na.action,
   weights,
   means = FALSE,
-  type = c("ctree", "disttree", "mob"),
+  type = c("ctree", "mob"),
   ...
 )
 }
@@ -26,10 +26,9 @@ via \code{\link[stats]{model.frame}}.}
 \item{weights}{optional numeric vector of weights (case/frequency weights, by default).}
 
 \item{means}{logical. Should the intra-individual mean values of measurements
-be included as split variable?}
+be included as potential split variable?}
 
-\item{type}{character string specifying the type of tree to be fit. Either \code{"ctree"} (default),
-\code{"disttree"} (equivalent to \code{"ctree"}) or \code{"mob"}.}
+\item{type}{character string specifying the type of tree to be fit. Either \code{"ctree"} (default; equals \code{\link[disttree]{disttree}}) or \code{"mob"}.}
 
 \item{...}{further control arguments, either passed to \code{\link[partykit]{ctree_control}}
 or \code{\link[partykit]{mob_control}}, respectively.}
