@@ -56,7 +56,7 @@ BAtest <- function(formula, data, subset, na.action, weights, ...)
   ## add fit/trafo function
   m[[1L]] <- m.bias[[1L]] <- m.var[[1L]] <- as.call(quote(partykit::ctree))
   m$ytrafo <- batrafo
-  m.bias$ytrafo <- batrafo.diff
+  m.bias$ytrafo <- batrafo.mean
   m.var$ytrafo <- batrafo.var
   m$control <- m.bias$control <- m.var$control <- partykit::ctree_control(alpha = 1, minsplit = 6L, minbucket = 3L, maxdepth = 1L, ...)
   
