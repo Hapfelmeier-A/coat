@@ -87,6 +87,28 @@ batrafo <- function(data, weights, control, ...) {
   }
 }
 
+#' Transformation function used in \code{\link[partykit]{ctree}} to transform a bivariate measurement pair to mean of the differences. See \code{ytrafo} in \code{\link[partykit]{ctree}} for details.
+#' @noRd
+batrafo.mean <- function(data, weights, control, ...) {
+  y <- data$data[, data$variables$y, drop = TRUE]
+  if(NCOL(y) != 2L) stop("'y' data must provide exactly 2 columns")
+  y <- y[, 1L] - y[, 2L]
+  function(subset, weights, info, estfun, object, ...) {
+    list(estfun = y, unweighted = TRUE)
+  }
+}
+
+#' Transformation function used in \code{\link[partykit]{ctree}} to transform a bivariate measurement pair to variance of the differences. See \code{ytrafo} in \code{\link[partykit]{ctree}} for details.
+#' @noRd
+batrafo.var <- function(data, weights, control, ...) {
+  y <- data$data[, data$variables$y, drop = TRUE]
+  if(NCOL(y) != 2L) stop("'y' data must provide exactly 2 columns")
+  y <- y[, 1L] - y[, 2L]
+  function(subset, weights, info, estfun, object, ...) {
+    list(estfun = (y - mean(y))^2, unweighted = TRUE)
+  }
+}
+
 #' \code{fit} function used in \code{\link[partykit]{mob}} for modeling the differences of a bivariate measurement pair by an intercept-only linear regression model with residual variance as additional parameter. See \code{fit} in \code{\link[partykit]{mob}} for details.
 #' @noRd
 bafit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ..., estfun = FALSE, object = FALSE)
