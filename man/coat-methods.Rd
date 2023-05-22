@@ -39,7 +39,14 @@ node_baplot(
   gp = gpar()
 )
 
-\method{autoplot}{coat}(x, digits = 2, xlim.max = NULL, level = 0.95, label.align = 0.95, ...)
+\method{autoplot}{coat}(
+  object,
+  digits = 2,
+  xlim.max = NULL,
+  level = 0.95,
+  label.align = 0.95,
+  ...
+)
 }
 \arguments{
 \item{x, object, obj}{a \code{coat} object as returned by \code{\link[coat]{coat}}.}

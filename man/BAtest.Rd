@@ -4,32 +4,31 @@
 \alias{BAtest}
 \alias{print.BAtest}
 \alias{plot.BAtest}
-\title{Two-Sample Bland-Altman Test of Method Agreement}
+\title{Bland-Altman Test of Method Agreement}
 \usage{
-BAtest(y1, y2, groups, ...)
+BAtest(formula, data, subset, na.action, weights, ...)
 
-\method{print}{BAtest}(x, digits = 2, ...)
+\method{print}{BAtest}(x, digits = 2, type = c("test", "model", "both"), ...)
 
-\method{plot}{BAtest}(x, statistics = TRUE, digits = 2, xlim.max = NULL, level = 0.95, ...)
+\method{plot}{BAtest}(x, ...)
 }
 \arguments{
-\item{y1}{a numeric vector of measurements by one method.}
+\item{formula}{symbolic description of the model used to perform the Bland-Altman test of type \code{y1 + y2 ~ x}.
+The left-hand side should specify a pair of measurements (\code{y1} and \code{y2}) to assess the agreement.
+The right-hand side should specify a factor with two levels indicating two independent groups or samples to be compared. Alternatively, multilevel factors or continuously scaled variables can be specified to perform a Bland-Altman test of association, followed by binary splitting into two subgroups.}
 
-\item{y2}{a numeric vector of measurements by another method.}
+\item{data, subset, na.action}{arguments controlling the formula processing
+via \code{\link[stats]{model.frame}}.}
 
-\item{groups}{a factor with two levels indicating the two independent groups or samples to be compared.}
+\item{weights}{optional numeric vector of weights (case/frequency weights, by default).}
 
-\item{...}{further arguments passed to \code{\link[partykit]{ctree_control}}.}
+\item{...}{further control arguments, passed to \code{\link[partykit]{ctree_control}}}
 
 \item{x}{an object as returned by \code{\link[coat]{BAtest}}.}
 
 \item{digits}{a numeric specifying the number of digits to display.}
 
-\item{statistics}{a logical indicating whether plotting of test statistics is required.}
-
-\item{xlim.max}{an optional numeric value to define the upper limit of the x-axis.}
-
-\item{level}{a numeric specifying the desired coverage of the prediction interval.}
+\item{type}{character string specifying whether \code{"test"} statistics (default), the \code{"model"} or \code{"both"} should be printed.}
 }
 \value{
 Object of class \code{BAtest} with elements
@@ -37,37 +36,34 @@ Object of class \code{BAtest} with elements
 \item{\code{model}}{tree model used to perform the Bland-Altman test.}
 }
 \description{
-Function to perform a two-sample Bland-Altman test for hypothesis testing of differences in method agreement. Additional functions are given for printing and plotting.
+Function to perform a Bland-Altman test of differences in method agreement. Additional functions are given for printing and plotting.
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{print(BAtest)}: function to print the result of the Bland-Altman test.
+\item \code{print}: function to print the result of the Bland-Altman test.
 
-\item \code{plot(BAtest)}: function to plot the result of the Bland-Altman test.
-
+\item \code{plot}: function to plot the result of the Bland-Altman test.
 }}
+
 \examples{
 \dontshow{ if(!requireNamespace("MethComp")) {
   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
     stop("the MethComp package is required for this example but is not installed")
   } else q() }
 }
-### load package ###
+## package and data
 library("coat")
-
-### data ###
 data("VitCap", package = "MethComp")
 ## transform data to required 'wide' format
 VitCap_wide <- reshape(VitCap, v.names = "y", timevar = "instrument",
                        idvar = c("item", "user"), drop = "meth", direction = "wide")
 
-### perform a two-sample BA-test ###
-testresult <- BAtest(VitCap_wide$y.St, VitCap_wide$y.Exp, VitCap_wide$user)
-testresult
+## two-sample BA-test
+testresult <- BAtest(y.St + y.Exp ~ user, data = VitCap_wide)
 
-### plot ###
+## display
+testresult
+print(testresult, digits = 1, type = "both")
 plot(testresult)
-## without table of statistics and with expanded xlim to avoid overlapping labeling
-plot(testresult, digits = 2, statistics = FALSE, xlim.max = 4800)
 
 }
