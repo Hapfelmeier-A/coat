@@ -13,7 +13,7 @@
 #'
 #' In addition to these dedicated \code{coat} methods, further methods are inherited
 #' from \code{\link[partykit]{ctree}} or \code{\link[partykit]{mob}}, respectively,
-#' depending on which \code{type} of \code{coat} was fitted. 
+#' depending on which \code{type} of \code{coat} was fitted.
 #'
 #' @param x,object,obj a \code{coat} object as returned by \code{\link[coat]{coat}}.
 #' @param digits numeric. Number of digits used for rounding the displayed coefficients
@@ -94,10 +94,10 @@
 print.coat <- function(x, digits = 2L,
   header = TRUE, footer = TRUE, title = "Conditional method agreement tree (COAT)", ...)
 {
-  header_panel <- if(header) function(party) {      
+  header_panel <- if(header) function(party) {
     c(title, "", "Model formula:", deparse(party$info$call$formula), "", "Fitted party:", "")
   } else function(party) ""
-  
+
   footer_panel <- if(footer) function(party) {
     n <- width(party)
     n <- format(c(length(party) - n, n))
@@ -175,7 +175,7 @@ node_baplot <- function(obj,
 		        yscale = NULL,
 		        ylines = 3,
 		        id = TRUE,
-                        mainlab = NULL, 
+                        mainlab = NULL,
 			gp = gpar())
 {
     ## means and differences
@@ -209,13 +209,13 @@ node_baplot <- function(obj,
           cf <- c("(Intercept)" = weighted.mean(yn, wn))
           cf <- c(cf, "(Variance)" = weighted.mean((yn - cf)^2, wn))
         }
-    
+
         ## grid
         top_vp <- viewport(layout = grid.layout(nrow = 2, ncol = 3,
-                           widths = unit(c(ylines, 1, 1), 
-                                         c("lines", "null", "lines")),  
+                           widths = unit(c(ylines, 1, 1),
+                                         c("lines", "null", "lines")),
                            heights = unit(c(1, 1), c("lines", "null"))),
-                           width = unit(1, "npc"), 
+                           width = unit(1, "npc"),
                            height = unit(1, "npc") - unit(2, "lines"),
 			   name = paste("node_baplot", nid, sep = ""),
 			   gp = gp)
@@ -226,7 +226,7 @@ node_baplot <- function(obj,
         ## main title
         top <- viewport(layout.pos.col=2, layout.pos.row=1)
         pushViewport(top)
-        if (is.null(mainlab)) {	
+        if (is.null(mainlab)) {
 	  mainlab <- if(id) {
 	    function(id, nobs) sprintf("Node %s (n = %s)", id, nobs)
   	  } else {
@@ -238,14 +238,14 @@ node_baplot <- function(obj,
 	}
         grid.text(mainlab)
         popViewport()
-	
+
         plot <- viewport(layout.pos.col = 2, layout.pos.row = 2,
                          xscale = xscale, yscale = yscale,
 			 name = paste0("node_baplot", nid, "plot"),
 			 clip = FALSE)
 
         pushViewport(plot)
-	
+
         grid.xaxis()
         grid.yaxis()
         grid.rect(gp = gpar(fill = "transparent"))
@@ -277,10 +277,10 @@ node_baplot <- function(obj,
               gp = gpar(col = linecol))
           }
         }
-        
+
         upViewport(2)
     }
-    
+
     return(rval)
 }
 class(node_baplot) <- "grapcon_generator"
@@ -292,37 +292,38 @@ class(node_baplot) <- "grapcon_generator"
 #' @importFrom gridExtra arrangeGrob grid.arrange tableGrob
 #' @importFrom ggtext element_markdown
 #' @importFrom ggparty ggparty geom_edge geom_edge_label geom_node_label geom_node_plot geom_node_splitvar
-autoplot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, label.align = 0.95, ...) {
+#' @importFrom stats sd
+autoplot.coat <- function(object, digits = 2, xlim.max = NULL, level = 0.95, label.align = 0.95, ...) {
   diffs. <- id <- means. <- nodesize <-  p.value <- splitvar <- NULL # due to NSE notes in R CMD check
-  
+
   ## augment data
-  y <- x$fitted[["(response)"]]
-  x$data$means. <- (y[, 1L] + y[, 2L])/2
-  x$data$diffs. <- y[, 1L] - y[, 2L]
-  
-  if (is.null(xlim.max)) xlim.max <- max(x$data$means.)
+  y <- object$fitted[["(response)"]]
+  object$data$means. <- (y[, 1L] + y[, 2L])/2
+  object$data$diffs. <- y[, 1L] - y[, 2L]
+
+  if (is.null(xlim.max)) xlim.max <- max(object$data$means.)
   level <- 1 - (1 - level)/2
-  
-  if (length(x) == 1) {
-    p1 <- ggplot(data_party(x), aes(x = means., y = diffs.))
+
+  if (length(object) == 1) {
+    p1 <- ggplot(data_party(object), aes(x = means., y = diffs.))
     mean_diff <- mean(p1$data$diffs.)
     sd_diff <- sd(p1$data$diffs.)
-    
-    p2 <- p1 + geom_point(alpha = 0.8) + 
-      geom_hline(aes(yintercept = mean_diff), col = 4) + 
-      geom_hline(aes(yintercept = mean_diff + qnorm(level)*sd_diff), col = 4, linetype = "dashed") + 
-      geom_hline(aes(yintercept = mean_diff - qnorm(level)*sd_diff), col = 4, linetype = "dashed") + 
+
+    p2 <- p1 + geom_point(alpha = 0.8) +
+      geom_hline(aes(yintercept = mean_diff), col = 4) +
+      geom_hline(aes(yintercept = mean_diff + qnorm(level)*sd_diff), col = 4, linetype = "dashed") +
+      geom_hline(aes(yintercept = mean_diff - qnorm(level)*sd_diff), col = 4, linetype = "dashed") +
       geom_label(aes(x = xlim.max * label.align, y = mean_diff, label = round(mean_diff, digits)), col = 4) +
-      geom_label(aes(x = xlim.max * label.align, y = mean_diff + qnorm(level)*sd_diff, label = round(mean_diff + qnorm(level)*sd_diff, digits)), col = 4) + 
-      geom_label(aes(x = xlim.max * label.align, y = mean_diff - qnorm(level)*sd_diff, label = round(mean_diff - qnorm(level)*sd_diff, digits)), col = 4) + 
+      geom_label(aes(x = xlim.max * label.align, y = mean_diff + qnorm(level)*sd_diff, label = round(mean_diff + qnorm(level)*sd_diff, digits)), col = 4) +
+      geom_label(aes(x = xlim.max * label.align, y = mean_diff - qnorm(level)*sd_diff, label = round(mean_diff - qnorm(level)*sd_diff, digits)), col = 4) +
       theme_bw(base_size = 10) + xlab("Mean values") + ylab("Differences") + xlim(NA, xlim.max)
-    p2 + ggtitle(paste0("Node ", 1, ", N = ", length(p1$data$diffs.))) + 
+    p2 + ggtitle(paste0("Node ", 1, ", N = ", length(p1$data$diffs.))) +
       theme(plot.title = element_markdown(hjust = 0.5, linetype = 1, padding = unit(0.25, "lines"), r = grid::unit(0.15, "lines"), margin = margin(0, 0, 0, 0)))
   } else {
-    p1 <- ggparty(x, terminal_space = 0.5)
+    p1 <- ggparty(object, terminal_space = 0.5)
     mean_diff <- sapply(p1$data$nodedata_diffs., mean)
     sd_diff <- sapply(p1$data$nodedata_diffs., sd)
-    
+
     p1 + geom_edge() +
       geom_edge_label() +
       geom_node_splitvar() +
@@ -336,7 +337,7 @@ autoplot.coat <- function(x, digits = 2, xlim.max = NULL, level = 0.95, label.al
                                    geom_label(aes(x = xlim.max * label.align, y = mean_diff[id] - qnorm(level)*sd_diff[id], label = round(mean_diff[id] - qnorm(level)*sd_diff[id], digits)), col = 4),
                                    theme_bw(base_size = 10), xlab("Mean values"), ylab("Differences"),
                                    xlim(NA, xlim.max))) +
-      
+
       geom_node_label(line_list = list(aes(label = splitvar),
                                        aes(label = paste("p = ", round(p.value, 3)))),
                       line_gpar = list(list(size = 12, col = "black"),

@@ -12,10 +12,12 @@
 #' ## pair of measurements
 #' y1 <- 1:4
 #' y2 <- c(2, 2, 1, 3)
-#' 
+#'
 #' ## differences and means
 #' diffs(y1, y2)
 #' means(y1, y2)
+
+#' @importFrom stats lm.fit dnorm lm
 
 #' @rdname diffs
 #' @export

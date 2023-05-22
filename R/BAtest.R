@@ -38,45 +38,47 @@
 #' \item{\code{test}}{result of the Bland-Altman test.}
 #' \item{\code{model}}{tree model used to perform the Bland-Altman test.}
 #'
+#' @importFrom partykit character_split sctest.constparty
+#'
 #' @export
 BAtest <- function(formula, data, subset, na.action, weights, ...)
 {
   ## keep call
   cl <- match.call(expand.dots = TRUE)
-  
+
   # check whether a single covariate is used.
   if (length(formula[[3]]) > 1) {
     stop("Please provide a single variable on the right-hand side of the formula. Otherwise, consider using the coat() function.")
   }
-  
+
   ## preparation of ctree call
   m <- m.bias <- m.var <- match.call(expand.dots = FALSE)
   if(missing(na.action)) m$na.action <- m.bias$na.action <- m.var$na.action <- na.omit
-  
+
   ## add fit/trafo function
   m[[1L]] <- m.bias[[1L]] <- m.var[[1L]] <- as.call(quote(partykit::ctree))
   m$ytrafo <- batrafo
   m.bias$ytrafo <- batrafo.mean
   m.var$ytrafo <- batrafo.var
   m$control <- m.bias$control <- m.var$control <- partykit::ctree_control(alpha = 1, minsplit = 6L, minbucket = 3L, maxdepth = 1L, ...)
-  
+
   ## fit tree
   rval <- eval(m, parent.frame())
   rval.bias <- eval(m.bias, parent.frame())
   rval.var <- eval(m.var, parent.frame())
-  
+
   # extract test statistics
   test <- matrix(NA, nrow = 3, ncol = 5)
-  colnames(test) <- c(character_split(rval$node$split, data = rval$data)$levels, "Chisq", "df", "p-value")
+  colnames(test) <- c(partykit::character_split(rval$node$split, data = rval$data)$levels, "Chisq", "df", "p-value")
   rownames(test) <- c("Bias", "SD", "Total")
-  
-  test[1, c(3, 5)] <- sctest.constparty(rval.bias, node = 1L)
-  test[2, c(3, 5)] <- sctest.constparty(rval.var, node = 1L)
-  test[3, c(3, 5)] <- sctest.constparty(rval, node = 1L)
-  test[1:2, 1:2] <- t(coat:::coef.coat(rval))
+
+  test[1, c(3, 5)] <- partykit::sctest.constparty(rval.bias, node = 1L)
+  test[2, c(3, 5)] <- partykit::sctest.constparty(rval.var, node = 1L)
+  test[3, c(3, 5)] <- partykit::sctest.constparty(rval, node = 1L)
+  test[1:2, 1:2] <- t(coef.coat(rval))
   test[2, 1:2] <- sqrt(test[2, 1:2])
   test[, 4] <- c(1, 1, 2)
-  
+
   ## unify output
   rval$info$call <- cl
   class(rval) <- c("coat", class(rval))
@@ -87,18 +89,18 @@ BAtest <- function(formula, data, subset, na.action, weights, ...)
 
 #' @describeIn BAtest function to print the result of the Bland-Altman test.
 #' @export
-print.BAtest <- function(x, digits = 2, type = c("test", "both", "model"), ...) {
-  
+print.BAtest <- function(x, digits = 2, type = c("test", "model", "both"), ...) {
+
   ## type of output
   type <- match.arg(tolower(type), c("test", "model", "both"))
-  
+
   if(type != "model") {
     out <- x$test
     out[, 1] <- round(out[, 1], digits)
     out[, 2] <- round(out[, 2], digits)
     out[, 3] <- round(out[, 3], 3)
     out[, 5] <- round(out[, 5], 3)
-    
+
     if (type == "test") {
       print(out, na.print="", ...)
     } else {
