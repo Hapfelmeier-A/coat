@@ -8,7 +8,7 @@
 #' @param data,subset,na.action arguments controlling the formula processing
 #' via \code{\link[stats]{model.frame}}.
 #' @param weights optional numeric vector of weights (case/frequency weights, by default).
-#' @param x an object as returned by \code{\link[coat]{BAtest}}.
+#' @param x an object as returned by \code{\link[coat]{ba.test}}.
 #' @param digits a numeric specifying the number of digits to display.
 #' @param type character string specifying whether \code{"test"} statistics (default), the \code{"model"} or \code{"both"} should be printed.
 #' @param ... further control arguments, passed to \code{\link[partykit]{ctree_control}}
@@ -19,29 +19,28 @@
 #'     stop("the MethComp package is required for this example but is not installed")
 #'   } else q() }
 #' }
-#' ## package and data
+#' ## package and data (reshaped to wide format)
 #' library("coat")
 #' data("VitCap", package = "MethComp")
-#' ## transform data to required 'wide' format
 #' VitCap_wide <- reshape(VitCap, v.names = "y", timevar = "instrument",
 #'                        idvar = c("item", "user"), drop = "meth", direction = "wide")
 #'
 #' ## two-sample BA-test
-#' testresult <- BAtest(y.St + y.Exp ~ user, data = VitCap_wide)
+#' testresult <- ba.test(y.St + y.Exp ~ user, data = VitCap_wide)
 #'
 #' ## display
 #' testresult
 #' print(testresult, digits = 1, type = "both")
 #' plot(testresult)
 #'
-#' @return Object of class \code{BAtest} with elements
+#' @return Object of class \code{batest} with elements
 #' \item{\code{test}}{result of the Bland-Altman test.}
 #' \item{\code{model}}{tree model used to perform the Bland-Altman test.}
 #'
 #' @importFrom partykit character_split sctest.constparty
 #'
 #' @export
-BAtest <- function(formula, data, subset, na.action, weights, ...)
+ba.test <- function(formula, data, subset, na.action, weights, ...)
 {
   ## keep call
   cl <- match.call(expand.dots = TRUE)
@@ -83,13 +82,13 @@ BAtest <- function(formula, data, subset, na.action, weights, ...)
   rval$info$call <- cl
   class(rval) <- c("coat", class(rval))
   trlist <- list("test" = test, "model" = rval)
-  class(trlist) <- "BAtest"
+  class(trlist) <- "batest"
   return(trlist)
 }
 
-#' @describeIn BAtest function to print the result of the Bland-Altman test.
+#' @describeIn ba.test function to print the result of the Bland-Altman test.
 #' @export
-print.BAtest <- function(x, digits = 2, type = c("test", "model", "both"), ...) {
+print.batest <- function(x, digits = 2, type = c("test", "model", "both"), ...) {
 
   ## type of output
   type <- match.arg(tolower(type), c("test", "model", "both"))
@@ -111,8 +110,8 @@ print.BAtest <- function(x, digits = 2, type = c("test", "model", "both"), ...) 
   } else print(x$model)
 }
 
-#' @describeIn BAtest function to plot the result of the Bland-Altman test.
+#' @describeIn ba.test function to plot the result of the Bland-Altman test.
 #' @export
-plot.BAtest <- function(x, ...) {
+plot.batest <- function(x, ...) {
   plot(x$model, ...)
 }
