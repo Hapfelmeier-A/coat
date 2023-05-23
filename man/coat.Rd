@@ -28,7 +28,7 @@ via \code{\link[stats]{model.frame}}.}
 \item{means}{logical. Should the intra-individual mean values of measurements
 be included as potential split variable?}
 
-\item{type}{character string specifying the type of tree to be fit. Either \code{"ctree"} (default; equals \code{\link[disttree]{disttree}}) or \code{"mob"}.}
+\item{type}{character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.}
 
 \item{...}{further control arguments, either passed to \code{\link[partykit]{ctree_control}}
 or \code{\link[partykit]{mob_control}}, respectively.}
@@ -55,13 +55,12 @@ agreement defaults to 20. Users may choose to modify this value as needed. See
     stop("the MethComp package is required for this example but is not installed")
   } else q() }
 }
-## package and data
+## package and data (reshaped to wide format)
 library("coat")
 data("scint", package = "MethComp")
-## transform data to required 'wide' format
 scint_wide <- reshape(scint, v.names = "y", timevar = "meth", idvar = "item", direction = "wide")
 
-## coat based on ctree() without and with mean values as predictor
+## coat based on ctree() without and with mean values of paired measurements as predictor
 tr1 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide)
 tr2 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide, means = TRUE)
 
