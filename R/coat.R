@@ -14,7 +14,7 @@
 #' @param weights optional numeric vector of weights (case/frequency weights, by default).
 #' @param means logical. Should the intra-individual mean values of measurements
 #' be included as potential split variable?
-#' @param type character string specifying the type of tree to be fit. Either \code{"ctree"} (default; equals \code{\link[disttree]{disttree}}) or \code{"mob"}.
+#' @param type character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.
 #' @param ... further control arguments, either passed to \code{\link[partykit]{ctree_control}}
 #' or \code{\link[partykit]{mob_control}}, respectively.
 #'
@@ -34,7 +34,7 @@
 #' ## transform data to required 'wide' format
 #' scint_wide <- reshape(scint, v.names = "y", timevar = "meth", idvar = "item", direction = "wide")
 #'
-#' ## coat based on ctree() without and with mean values as predictor
+#' ## coat based on ctree() without and with mean values of paired measurements as predictor
 #' tr1 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide)
 #' tr2 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide, means = TRUE)
 #'
