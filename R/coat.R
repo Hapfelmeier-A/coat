@@ -28,10 +28,9 @@
 #'     stop("the MethComp package is required for this example but is not installed")
 #'   } else q() }
 #' }
-#' ## package and data
+#' ## package and data (reshaped to wide format)
 #' library("coat")
 #' data("scint", package = "MethComp")
-#' ## transform data to required 'wide' format
 #' scint_wide <- reshape(scint, v.names = "y", timevar = "meth", idvar = "item", direction = "wide")
 #'
 #' ## coat based on ctree() without and with mean values of paired measurements as predictor
