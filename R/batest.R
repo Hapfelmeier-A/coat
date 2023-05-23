@@ -8,7 +8,7 @@
 #' @param data,subset,na.action arguments controlling the formula processing
 #' via \code{\link[stats]{model.frame}}.
 #' @param weights optional numeric vector of weights (case/frequency weights, by default).
-#' @param x an object as returned by \code{\link[coat]{ba.test}}.
+#' @param x an object as returned by \code{\link[coat]{batest}}.
 #' @param digits a numeric specifying the number of digits to display.
 #' @param type character string specifying whether \code{"test"} statistics (default), the \code{"model"} or \code{"both"} should be printed.
 #' @param ... further control arguments, passed to \code{\link[partykit]{ctree_control}}
@@ -26,7 +26,7 @@
 #'                        idvar = c("item", "user"), drop = "meth", direction = "wide")
 #'
 #' ## two-sample BA-test
-#' testresult <- ba.test(y.St + y.Exp ~ user, data = VitCap_wide)
+#' testresult <- batest(y.St + y.Exp ~ user, data = VitCap_wide)
 #'
 #' ## display
 #' testresult
@@ -40,7 +40,7 @@
 #' @importFrom partykit character_split sctest.constparty
 #'
 #' @export
-ba.test <- function(formula, data, subset, na.action, weights, ...)
+batest <- function(formula, data, subset, na.action, weights, ...)
 {
   ## keep call
   cl <- match.call(expand.dots = TRUE)
@@ -86,7 +86,7 @@ ba.test <- function(formula, data, subset, na.action, weights, ...)
   return(trlist)
 }
 
-#' @describeIn ba.test function to print the result of the Bland-Altman test.
+#' @describeIn batest function to print the result of the Bland-Altman test.
 #' @export
 print.batest <- function(x, digits = 2, type = c("test", "model", "both"), ...) {
 
@@ -110,7 +110,7 @@ print.batest <- function(x, digits = 2, type = c("test", "model", "both"), ...) 
   } else print(x$model)
 }
 
-#' @describeIn ba.test function to plot the result of the Bland-Altman test.
+#' @describeIn batest function to plot the result of the Bland-Altman test.
 #' @export
 plot.batest <- function(x, ...) {
   plot(x$model, ...)
