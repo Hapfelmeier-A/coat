@@ -40,11 +40,11 @@ Function to perform a Bland-Altman test of differences in method agreement. Addi
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{print}: function to print the result of the Bland-Altman test.
+\item \code{print(batest)}: function to print the result of the Bland-Altman test.
 
-\item \code{plot}: function to plot the result of the Bland-Altman test.
+\item \code{plot(batest)}: function to plot the result of the Bland-Altman test.
+
 }}
-
 \examples{
 \dontshow{ if(!requireNamespace("MethComp")) {
   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
