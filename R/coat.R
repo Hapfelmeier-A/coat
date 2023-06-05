@@ -80,6 +80,7 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
     m$fit <- bafit
     m$control <- partykit::mob_control(...)
     m$control$ytype <- "matrix"
+    if(is.null(m$control$minsize) && is.null(m$control$minbucket)) m$control$minsize <- 20L
   } else {
     m[[1L]] <- as.call(quote(partykit::ctree))
     m$ytrafo <- batrafo
