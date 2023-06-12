@@ -64,9 +64,9 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
 
   ## if desired "means(y1, y2)" is added as split variable
   if(means) {
-    formula <- update(formula, . ~ `_means_` + .)
-    formula[[3L]][[2L]] <- formula[[2]]
-    formula[[3L]][[2L]][[1L]] <- as.name("means")
+    formula <- update(formula, . ~ . + `_means_`)
+    formula[[3L]][[3L]] <- formula[[2]]
+    formula[[3L]][[3L]][[1L]] <- as.name("means")
     m$formula <- formula
   }
 
@@ -80,6 +80,7 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
     m$fit <- bafit
     m$control <- partykit::mob_control(...)
     m$control$ytype <- "matrix"
+    if(is.null(m$control$minsize) && is.null(m$control$minbucket)) m$control$minsize <- 20L
   } else {
     m[[1L]] <- as.call(quote(partykit::ctree))
     m$ytrafo <- batrafo
