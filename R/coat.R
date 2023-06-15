@@ -22,6 +22,21 @@
 #' agreement defaults to 20. Users may choose to modify this value as needed. See
 #' \code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}} for details.
 #'
+#' In addition to the standard specification of the two response measurements in the
+#' formula via \code{y1 + y2 ~ ...}, it is also possible to use \code{y1 - y2 ~ ...}.
+#' The latter may be more intuitive for users that think of it as a model for the
+#' difference of two measurements. Finally \code{cbind(y1, y2) ~ ...} also works.
+#' Internally, all of these are processed in the same way, namely as a bivariate
+#' dependent variable that can then be modeled and plotted appropriately.
+#'
+#' To add the means of the measurement pair as a potential splitting variable,
+#' there are also different equivalent strategies. The standard specification would
+#' be via the \code{means} argument: \code{y1 + y2 ~ x1 + ..., means = TRUE}.
+#' Alternatively, the user can also extend the formula argument via
+#' \code{y1 + y2 ~ x1 + ... + means(y1, y2)} or via
+#' \code{y1 + y2 ~ x1 + ... + I((y1 + y2)/2)}.
+#'
+#'
 #' @examples
 #' \dontshow{ if(!requireNamespace("MethComp")) {
 #'   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
@@ -67,6 +82,12 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
     formula <- update(formula, . ~ . + `_means_`)
     formula[[3L]][[3L]] <- formula[[2]]
     formula[[3L]][[3L]][[1L]] <- as.name("means")
+    m$formula <- formula
+  }
+  
+  ## if measurements are specified as `y1 - y2`, switch to `y1 + y2` internally
+  if(formula[[2L]][[1L]] == as.name("-")) {
+    formula[[2L]][[1L]] <- as.name("+")
     m$formula <- formula
   }
 
