@@ -85,3 +85,9 @@ plot(tr1)
 print(tr2)
 plot(tr2)
 }
+\references{
+Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2023).
+\dQuote{Tree Models for Assessing Covariate-Dependent Method Agreement.}
+arXiv 2306.04456, \emph{arXiv.org E-Print Archive}.
+\doi{10.48550/arXiv.2306.04456}
+}

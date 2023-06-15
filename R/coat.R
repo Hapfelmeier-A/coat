@@ -36,6 +36,10 @@
 #' \code{y1 + y2 ~ x1 + ... + means(y1, y2)} or via
 #' \code{y1 + y2 ~ x1 + ... + I((y1 + y2)/2)}.
 #'
+#' @references Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2023).
+#' \dQuote{Tree Models for Assessing Covariate-Dependent Method Agreement.}
+#' arXiv 2306.04456, \emph{arXiv.org E-Print Archive}.
+#' \doi{10.48550/arXiv.2306.04456}
 #'
 #' @examples
 #' \dontshow{ if(!requireNamespace("MethComp")) {

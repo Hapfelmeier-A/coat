@@ -1,0 +1,14 @@
+bibentry(bibtype = "TechReport",
+         title = "Tree Models for Assessing Covariate-Dependent Method Agreement",
+         author = c(person(given = "Siranush", family = "Karapetyan", email = "Siranush.Karapetyan@mri.tum.de"),
+                    person(given = "Achim", family = "Zeileis", email = "Achim.Zeileis@R-project.org"),
+                    person(given = "André", family = "Henriksen", email = "Andre.Henriksen@uit.no"),
+                    person(given = "Alexander", family = "Hapfelmeier", email = "Alexander.Hapfelmeier@mri.tum.de")),
+         year = "2023",
+         institution = "arXiv.org E-Print Archive",
+         type = "arXiv",
+         number = "2306.04456",
+         month = "June",
+         doi = "10.48550/arXiv.2306.04456",
+         header = "To cite coat in publications use:"
+)
