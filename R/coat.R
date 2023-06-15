@@ -33,8 +33,7 @@
 #' there are also different equivalent strategies. The standard specification would
 #' be via the \code{means} argument: \code{y1 + y2 ~ x1 + ..., means = TRUE}.
 #' Alternatively, the user can also extend the formula argument via
-#' \code{y1 + y2 ~ x1 + ... + means(y1, y2)} or via
-#' \code{y1 + y2 ~ x1 + ... + I((y1 + y2)/2)}.
+#' \code{y1 + y2 ~ x1 + ... + means(y1, y2)}.
 #'
 #' @references Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2023).
 #' \dQuote{Tree Models for Assessing Covariate-Dependent Method Agreement.}

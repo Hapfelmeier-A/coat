@@ -60,8 +60,7 @@ To add the means of the measurement pair as a potential splitting variable,
 there are also different equivalent strategies. The standard specification would
 be via the \code{means} argument: \code{y1 + y2 ~ x1 + ..., means = TRUE}.
 Alternatively, the user can also extend the formula argument via
-\code{y1 + y2 ~ x1 + ... + means(y1, y2)} or via
-\code{y1 + y2 ~ x1 + ... + I((y1 + y2)/2)}.
+\code{y1 + y2 ~ x1 + ... + means(y1, y2)}.
 }
 \examples{
 \dontshow{ if(!requireNamespace("MethComp")) {
