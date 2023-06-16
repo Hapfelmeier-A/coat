@@ -48,6 +48,19 @@ partitioning (MOB).
 The minimum number of observations required to model conditional
 agreement defaults to 20. Users may choose to modify this value as needed. See
 \code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}} for details.
+
+In addition to the standard specification of the two response measurements in the
+formula via \code{y1 + y2 ~ ...}, it is also possible to use \code{y1 - y2 ~ ...}.
+The latter may be more intuitive for users that think of it as a model for the
+difference of two measurements. Finally \code{cbind(y1, y2) ~ ...} also works.
+Internally, all of these are processed in the same way, namely as a bivariate
+dependent variable that can then be modeled and plotted appropriately.
+
+To add the means of the measurement pair as a potential splitting variable,
+there are also different equivalent strategies. The standard specification would
+be via the \code{means} argument: \code{y1 + y2 ~ x1 + ..., means = TRUE}.
+Alternatively, the user can also extend the formula argument via
+\code{y1 + y2 ~ x1 + ... + means(y1, y2)}.
 }
 \examples{
 \dontshow{ if(!requireNamespace("MethComp")) {
@@ -70,4 +83,10 @@ plot(tr1)
 
 print(tr2)
 plot(tr2)
+}
+\references{
+Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2023).
+\dQuote{Tree Models for Assessing Covariate-Dependent Method Agreement.}
+arXiv 2306.04456, \emph{arXiv.org E-Print Archive}.
+\doi{10.48550/arXiv.2306.04456}
 }
