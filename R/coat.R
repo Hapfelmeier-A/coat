@@ -15,12 +15,26 @@
 #' @param means logical. Should the intra-individual mean values of measurements
 #' be included as potential split variable?
 #' @param type character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.
+#' @param minsize,minbucket integer. The minimum number of observations in a subgroup.
+#'   Only one of the two arguments should be used (see also below).
+#' @param minsplit integer. The minimum number of observations to consider splitting.
+#'   Must be at least twice the minimal subgroup size (\code{minsplit} or \code{minbucket}).
 #' @param ... further control arguments, either passed to \code{\link[partykit]{ctree_control}}
 #' or \code{\link[partykit]{mob_control}}, respectively.
 #'
-#' @details The minimum number of observations required to model conditional
-#' agreement defaults to 20. Users may choose to modify this value as needed. See
-#' \code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}} for details.
+#' @details The minimum number of observations in a subgroup defaults to 10,
+#' so that the mean and variance of the measurement differences can be estimated
+#' reasonably for the Bland-Altman analysis. The default can be changed with
+#' with the argument \code{minsize} or, equivalently, \code{minbucket}.
+#' (The different names stem from slightly different conventions in the underlying
+#' tree functions.) Consequently, the minimum number of observations to consider
+#' splitting defaults to 25. At the very least it must be twice the minimum number
+#' of observations per subgroup (which would allow only one possible split, though).
+#' Users are encouraged to consider whether for their application it is sensible
+#' to increase or decrease these defaults. Finally, further control parameters
+#' can be specified through the \code{...} argument, see
+#' \code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}},
+#' respectively, for details.
 #'
 #' In addition to the standard specification of the two response measurements in the
 #' formula via \code{y1 + y2 ~ ...}, it is also possible to use \code{y1 - y2 ~ ...}.
@@ -68,7 +82,8 @@
 #' @importFrom partykit ctree_control mob_control
 #'
 #' @export
-coat <- function(formula, data, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"), ...)
+coat <- function(formula, data, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
+  minsize = 10L, minbucket = minsize, minsplit = 25L, ...)
 {
   ## type of tree
   type <- match.arg(tolower(type), c("ctree", "mob"))
@@ -98,21 +113,36 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
   m$means <- NULL
   m$type <- NULL
 
+  ## process hyperparameters
+  if(!missing(minsize) && !missing(minbucket)) {
+    warning("the minimal subgroup size should either be specified by 'minsize' or 'minbucket' but not both, using 'minsize'")
+    minbucket <- minsize
+  }
+  minsize <- minbucket
+  if(minsplit < 2L * minsize) {
+    warning("the minimal sample size to consider splitting ('minsplit') must be at least twice the minimal subgroup size ('minsize'), increased accordingly")
+    minsplit <- 2L * minsize
+  }
+
   ## add fit/trafo function
   if(type == "mob") {
     m[[1L]] <- as.call(quote(partykit::mob))
     m$fit <- bafit
-    m$control <- partykit::mob_control(...)
+    m$control <- partykit::mob_control(minsize = minsize, minsplit = minsplit, ...)
     m$control$ytype <- "matrix"
-    if(is.null(m$control$minsize) && is.null(m$control$minbucket)) m$control$minsize <- 20L
   } else {
     m[[1L]] <- as.call(quote(partykit::ctree))
     m$ytrafo <- batrafo
-    m$control <- partykit::ctree_control(...)
+    m$control <- partykit::ctree_control(minbucket = minsize, minsplit = minsplit, ...)
   }
 
   ## fit tree
   rval <- eval(m, parent.frame())
+  
+  ## informative warning if sample size is too small for splitting
+  if(is.null(rval$node$split) && rval$node$info$nobs < minsplit) {
+    message("the number of observations is less than the minimal sample size to consider splitting ('minsplit'), please consider whether 'minsplit'/'minsize' should be adjusted")
+  }
   
   ## unify output
   rval$info$call <- cl

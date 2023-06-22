@@ -12,6 +12,9 @@ coat(
   weights,
   means = FALSE,
   type = c("ctree", "mob"),
+  minsize = 10L,
+  minbucket = minsize,
+  minsplit = 25L,
   ...
 )
 }
@@ -30,6 +33,12 @@ be included as potential split variable?}
 
 \item{type}{character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.}
 
+\item{minsize, minbucket}{integer. The minimum number of observations in a subgroup.
+Only one of the two arguments should be used (see also below).}
+
+\item{minsplit}{integer. The minimum number of observations to consider splitting.
+Must be at least twice the minimal subgroup size (\code{minsplit} or \code{minbucket}).}
+
 \item{...}{further control arguments, either passed to \code{\link[partykit]{ctree_control}}
 or \code{\link[partykit]{mob_control}}, respectively.}
 }
@@ -45,9 +54,19 @@ via conditional inference trees (CTree) or using model-based recursive
 partitioning (MOB).
 }
 \details{
-The minimum number of observations required to model conditional
-agreement defaults to 20. Users may choose to modify this value as needed. See
-\code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}} for details.
+The minimum number of observations in a subgroup defaults to 10,
+so that the mean and variance of the measurement differences can be estimated
+reasonably for the Bland-Altman analysis. The default can be changed with
+with the argument \code{minsize} or, equivalently, \code{minbucket}.
+(The different names stem from slightly different conventions in the underlying
+tree functions.) Consequently, the minimum number of observations to consider
+splitting defaults to 25. At the very least it must be twice the minimum number
+of observations per subgroup (which would allow only one possible split, though).
+Users are encouraged to consider whether for their application it is sensible
+to increase or decrease these defaults. Finally, further control parameters
+can be specified through the \code{...} argument, see
+\code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}},
+respectively, for details.
 
 In addition to the standard specification of the two response measurements in the
 formula via \code{y1 + y2 ~ ...}, it is also possible to use \code{y1 - y2 ~ ...}.
