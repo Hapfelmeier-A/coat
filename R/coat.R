@@ -143,9 +143,9 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
   ## fit tree
   rval <- eval(m, parent.frame())
   
-  ## informative warning if sample size is too small for splitting
-  if(is.null(rval$node$split) && rval$node$info$nobs < minsplit) {
-    message("the number of observations is less than the minimal sample size to consider splitting ('minsplit'), please consider whether 'minsplit'/'minsize' should be adjusted")
+  ## informative warning if tree considered splitting at all
+  if(is.null(rval$node$split) && (is.null(rval$node$info) || is.null(rval$node$info$test))) {
+    message("Info: The tree has no splits due to the hyperparameters ('minsize', 'minsplit', ...), no test were carried out, possibly consider adjusting the hyperparameters.")
   }
   
   ## unify output
