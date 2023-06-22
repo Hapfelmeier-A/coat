@@ -16,9 +16,11 @@
 #' be included as potential split variable?
 #' @param type character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.
 #' @param minsize,minbucket integer. The minimum number of observations in a subgroup.
-#'   Only one of the two arguments should be used (see also below).
+#' Only one of the two arguments should be used (see also below).
 #' @param minsplit integer. The minimum number of observations to consider splitting.
-#'   Must be at least twice the minimal subgroup size (\code{minsplit} or \code{minbucket}).
+#' Must be at least twice the minimal subgroup size (\code{minsplit} or \code{minbucket}).
+#' If set to \code{NULL} (the default) it is set to be at least 2.5 times the minimal
+#' subgroup size.
 #' @param ... further control arguments, either passed to \code{\link[partykit]{ctree_control}}
 #' or \code{\link[partykit]{mob_control}}, respectively.
 #'
@@ -28,8 +30,9 @@
 #' with the argument \code{minsize} or, equivalently, \code{minbucket}.
 #' (The different names stem from slightly different conventions in the underlying
 #' tree functions.) Consequently, the minimum number of observations to consider
-#' splitting defaults to 25. At the very least it must be twice the minimum number
+#' splitting (\code{minsplit}) must be, at the very least, twice the minimum number
 #' of observations per subgroup (which would allow only one possible split, though).
+#' By default, \code{minsplit} is 2.5 times \code{minsize}.
 #' Users are encouraged to consider whether for their application it is sensible
 #' to increase or decrease these defaults. Finally, further control parameters
 #' can be specified through the \code{...} argument, see
@@ -83,7 +86,7 @@
 #'
 #' @export
 coat <- function(formula, data, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
-  minsize = 10L, minbucket = minsize, minsplit = 25L, ...)
+  minsize = 10L, minbucket = minsize, minsplit = NULL, ...)
 {
   ## type of tree
   type <- match.arg(tolower(type), c("ctree", "mob"))
@@ -119,6 +122,7 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
     minbucket <- minsize
   }
   minsize <- minbucket
+  if(is.null(minsplit)) minsplit <- ceiling(2.5 * minsize)
   if(minsplit < 2L * minsize) {
     warning("the minimal sample size to consider splitting ('minsplit') must be at least twice the minimal subgroup size ('minsize'), increased accordingly")
     minsplit <- 2L * minsize

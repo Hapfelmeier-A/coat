@@ -14,7 +14,7 @@ coat(
   type = c("ctree", "mob"),
   minsize = 10L,
   minbucket = minsize,
-  minsplit = 25L,
+  minsplit = NULL,
   ...
 )
 }
@@ -37,7 +37,9 @@ be included as potential split variable?}
 Only one of the two arguments should be used (see also below).}
 
 \item{minsplit}{integer. The minimum number of observations to consider splitting.
-Must be at least twice the minimal subgroup size (\code{minsplit} or \code{minbucket}).}
+Must be at least twice the minimal subgroup size (\code{minsplit} or \code{minbucket}).
+If set to \code{NULL} (the default) it is set to be at least 2.5 times the minimal
+subgroup size.}
 
 \item{...}{further control arguments, either passed to \code{\link[partykit]{ctree_control}}
 or \code{\link[partykit]{mob_control}}, respectively.}
@@ -60,8 +62,9 @@ reasonably for the Bland-Altman analysis. The default can be changed with
 with the argument \code{minsize} or, equivalently, \code{minbucket}.
 (The different names stem from slightly different conventions in the underlying
 tree functions.) Consequently, the minimum number of observations to consider
-splitting defaults to 25. At the very least it must be twice the minimum number
+splitting (\code{minsplit}) must be, at the very least, twice the minimum number
 of observations per subgroup (which would allow only one possible split, though).
+By default, \code{minsplit} is 2.5 times \code{minsize}.
 Users are encouraged to consider whether for their application it is sensible
 to increase or decrease these defaults. Finally, further control parameters
 can be specified through the \code{...} argument, see
