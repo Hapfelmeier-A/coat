@@ -37,6 +37,8 @@
 #' @param pch,cex,col,linecol,lty,bg graphical parameters for the scatter plot and limits
 #' of agreement in the Bland-Altman plot (scatter plot character, character extension, plot color,
 #' line color, line types, and background color).
+#' @param add_ci logical. Should confidence intervals be plotted?
+#' @param confidence_level numeric level of the confidence intervals. Only used if \code{add_ci} is TRUE.
 #' @param xscale,yscale numeric specification of scale of x-axis and y-axis, respectively.
 #' By default the range of all scatter plots and limits of agreement across all nodes
 #' are used.
@@ -171,6 +173,8 @@ node_baplot <- function(obj,
                         linecol = 4,
 		        lty = c(1, 2),
 			bg = "white",
+			add_ci = FALSE,
+			confidence_level = 0.95,
 		        xscale = NULL,
 		        yscale = NULL,
 		        ylines = 3,
@@ -259,6 +263,13 @@ node_baplot <- function(obj,
         grid.lines(unit(c(0, 1), "npc"), unit(loa[2L], "native"), gp = gpar(col = linecol, lty = lty[1L]))
         grid.lines(unit(c(0, 1), "npc"), unit(loa[1L], "native"), gp = gpar(col = linecol, lty = lty[2L]))
         grid.lines(unit(c(0, 1), "npc"), unit(loa[3L], "native"), gp = gpar(col = linecol, lty = lty[2L]))
+
+	## confidence intervals
+	if (add_ci) {
+	  loa_confint_upper <- loa + qnorm((1 - confidence_level)/2) * c(sd(yn)*sqrt(sum((wn/sum(wn))^2)) + qnorm((1 - level)/2)^2 * , sd(yn)*sqrt(sum((wn/sum(wn))^2)), )
+	  loa_confint_lower <- 
+	  grid.polygon(, , gp = gpar(col = linecol, lty = lty[1L]))
+	}	
 
         ## annotation
         if (isTRUE(digits)) digits <- 2L
