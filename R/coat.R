@@ -78,6 +78,9 @@
 #'
 #' print(tr2)
 #' plot(tr2)
+#' 
+#' ## display with nonparametric bootstrap percentile confidence intervals and modified scaling of the x-axis. No reasonable values were chosen. The example only serves to illustrate the functionality.
+#' plot(tr1, tp_args = list(add_boot_ci = TRUE, B = 5000, confidence_level = 0.5, xscale = c(0,150)))
 #' @return Object of class \code{coat}, inheriting either from \code{constparty} (if \code{\link[partykit]{ctree}}
 #' is used) or \code{modelparty} (if \code{\link[partykit]{mob}} is used).
 #'
