@@ -17,7 +17,7 @@
 #' diffs(y1, y2)
 #' means(y1, y2)
 
-#' @importFrom stats lm.fit dnorm lm
+#' @importFrom stats lm.fit dnorm lm var sd
 
 #' @rdname diffs
 #' @export
@@ -69,8 +69,10 @@ gaussfit <- function(y, x = NULL, start = NULL, weights = NULL,
   m <- lm.fit(x, y)
   b <- m$coefficients
   s2 <- mean(m$residuals^2)
+  s2ols <- var(m$residuals) ## n * s2 = (n-1) * s2ols
   list(
-    coefficients = c(b, "(Variance)" = s2),
+    coefficients = c("Bias" = as.numeric(b), "SD" = sqrt(s2ols)), ## parameter estimates employed for Bland-Altman analysis
+    mobcoefficients = c(b, "(Variance)" = s2), ## parameter estimates underlying the mob() inference
     objfun = -sum(dnorm(y, mean = m$fitted.values, sd = sqrt(s2), log = TRUE)),
     estfun = if(estfun) cbind(m$residuals/s2 * x, "(Variance)" = (m$residuals^2 - s2)/(2 * s2^2)) else NULL,
     object = if(object) lm(y ~ 0 + x) else NULL
@@ -121,8 +123,10 @@ bafit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ...,
   m <- lm.fit(x, y)
   b <- m$coefficients
   s2 <- mean(m$residuals^2)
+  s2ols <- var(m$residuals) ## n * s2 = (n-1) * s2ols
   list(
-    coefficients = c(b, "(Variance)" = s2),
+    coefficients = c("Bias" = as.numeric(b), "SD" = sqrt(s2ols)), ## parameter estimates employed for Bland-Altman analysis
+    mobcoefficients = c(b, "(Variance)" = s2), ## parameter estimates underlying the mob() inference
     objfun = -sum(dnorm(y, mean = m$fitted.values, sd = sqrt(s2), log = TRUE)),
     estfun = if(estfun) cbind(m$residuals/s2 * x, "(Variance)" = (m$residuals^2 - s2)/(2 * s2^2)) else NULL,
     object = if(object) lm(y ~ 0 + x) else NULL

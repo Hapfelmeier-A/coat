@@ -56,6 +56,16 @@ via conditional inference trees (CTree) or using model-based recursive
 partitioning (MOB).
 }
 \details{
+Conditional method agreement trees (COAT) employ unbiased
+recursive partitioning in order to detect and model dependency on covariates
+in the classic Bland-Altman analysis. One of two recursive partitioning techniques
+can be used to find subgroups defined by splits in covariates to a pair
+of measurements, either nonparametric conditional inference trees (CTree)
+or parametric model-based trees (MOB). In both cases, each subgroup is associated
+with two parameter estimates: the mean of the measurement difference (\dQuote{Bias})
+and the corresponding sample standard deviation (\dQuote{SD}) which can be
+used to construct the limits of agreement (i.e., the corresponding confidence intervals).
+
 The minimum number of observations in a subgroup defaults to 10,
 so that the mean and variance of the measurement differences can be estimated
 reasonably for the Bland-Altman analysis. The default can be changed with
@@ -83,6 +93,11 @@ there are also different equivalent strategies. The standard specification would
 be via the \code{means} argument: \code{y1 + y2 ~ x1 + ..., means = TRUE}.
 Alternatively, the user can also extend the formula argument via
 \code{y1 + y2 ~ x1 + ... + means(y1, y2)}.
+
+The SD is estimated by the usual sample standard deviation in each subgroup,
+i.e., divided by the sample size \eqn{n - 1}. Note that the inference in the
+MOB algorithm internally uses the maximum likelihood estimate (divided by \eqn{n})
+instead so the the fluctuation tests for parameter instability can be applied.
 }
 \examples{
 \dontshow{ if(!requireNamespace("MethComp")) {
