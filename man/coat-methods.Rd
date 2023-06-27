@@ -31,6 +31,10 @@ node_baplot(
   linecol = 4,
   lty = c(1, 2),
   bg = "white",
+  confint = FALSE,
+  B = 500,
+  cilevel = 0.95,
+  cicol = "lightgray",
   xscale = NULL,
   yscale = NULL,
   ylines = 3,
@@ -83,6 +87,14 @@ the bottom row?}
 \item{pch, cex, col, linecol, lty, bg}{graphical parameters for the scatter plot and limits
 of agreement in the Bland-Altman plot (scatter plot character, character extension, plot color,
 line color, line types, and background color).}
+
+\item{confint}{logical. Should nonparametric bootstrap percentile confidence intervals be plotted?}
+
+\item{B}{numeric. Number of bootstrap samples to be used if \code{confint = TRUE}.}
+
+\item{cilevel}{numeric. Level of the confidence intervals if \code{confint = TRUE}.}
+
+\item{cicol}{color specification for the confidence intervals if \code{confint = TRUE}.}
 
 \item{xscale, yscale}{numeric specification of scale of x-axis and y-axis, respectively.
 By default the range of all scatter plots and limits of agreement across all nodes

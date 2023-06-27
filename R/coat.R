@@ -78,6 +78,13 @@
 #'
 #' print(tr2)
 #' plot(tr2)
+#' 
+#' ## tweak various graphical arguments of the panel function (just for illustration):
+#' ## different colors, nonparametric bootstrap percentile confidence intervals, ...
+#' plot(tr1, tp_args = list(
+#'   xscale = c(0, 150), linecol = "deeppink",
+#'   confint = TRUE, B = 250, cilevel = 0.5, cicol = "gold"
+#' ))
 #' @return Object of class \code{coat}, inheriting either from \code{constparty} (if \code{\link[partykit]{ctree}}
 #' is used) or \code{modelparty} (if \code{\link[partykit]{mob}} is used).
 #'

@@ -37,6 +37,10 @@
 #' @param pch,cex,col,linecol,lty,bg graphical parameters for the scatter plot and limits
 #' of agreement in the Bland-Altman plot (scatter plot character, character extension, plot color,
 #' line color, line types, and background color).
+#' @param confint logical. Should nonparametric bootstrap percentile confidence intervals be plotted?
+#' @param B numeric. Number of bootstrap samples to be used if \code{confint = TRUE}.
+#' @param cilevel numeric. Level of the confidence intervals if \code{confint = TRUE}.
+#' @param cicol color specification for the confidence intervals if \code{confint = TRUE}.
 #' @param xscale,yscale numeric specification of scale of x-axis and y-axis, respectively.
 #' By default the range of all scatter plots and limits of agreement across all nodes
 #' are used.
@@ -159,9 +163,9 @@ plot.coat <- function(x, terminal_panel = node_baplot, tnex = 2, drop_terminal =
 
 #' @rdname coat-methods
 #' @export
-#' @importFrom stats coef qnorm weighted.mean
+#' @importFrom stats coef qnorm weighted.mean quantile
 #' @importFrom partykit id_node data_party info_node
-#' @importFrom grid viewport gpar grid.clip grid.layout grid.lines grid.points grid.rect grid.text grid.xaxis grid.yaxis pushViewport popViewport upViewport unit
+#' @importFrom grid viewport gpar grid.clip grid.layout grid.lines grid.points grid.polygon grid.rect grid.text grid.xaxis grid.yaxis pushViewport popViewport upViewport unit
 node_baplot <- function(obj,
                         level = 0.95,
                         digits = 2,
@@ -171,6 +175,10 @@ node_baplot <- function(obj,
                         linecol = 4,
 		        lty = c(1, 2),
 			bg = "white",
+			confint = FALSE,
+			B = 500,
+			cilevel = 0.95,
+                        cicol = "lightgray",
 		        xscale = NULL,
 		        yscale = NULL,
 		        ylines = 3,
@@ -246,12 +254,30 @@ node_baplot <- function(obj,
 
         pushViewport(plot)
 
+	## confidence intervals
+	if (confint) {
+	  loa_boot <- sapply(1:B, function(z) {
+	    boot_index <- sample(1:length(yn), length(yn), replace = TRUE)	  
+	    wn_boot <- weighted.mean(yn[boot_index], wn[boot_index]) 
+	    var_boot <- weighted.mean((yn[boot_index] - wn_boot)^2, wn[boot_index])
+
+	    wn_boot + c(1, 0, -1) * qnorm((1 - level)/2) * sqrt(var_boot)
+	  })
+
+	  stats_boot <- apply(loa_boot, 1, function(z) quantile(z, probs = 0:1 + c(1, -1) * (1-cilevel)/2))
+	  
+	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 1L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
+	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 2L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
+          grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 3L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
+	}	
+
+        ## box and axes
         grid.xaxis()
         grid.yaxis()
         grid.rect(gp = gpar(fill = "transparent"))
 	grid.clip()
 
-        ## scatterplot
+	## scatterplot
         grid.points(unit(xn, "native"), unit(yn, "native"), size = unit(cex, "char"), pch = pch, gp = gpar(col = col))
 
         ## limits of agreement
