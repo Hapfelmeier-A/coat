@@ -105,6 +105,13 @@ plot(tr1)
 
 print(tr2)
 plot(tr2)
+
+## tweak various graphical arguments of the panel function (just for illustration):
+## different colors, nonparametric bootstrap percentile confidence intervals, ...
+plot(tr1, tp_args = list(
+  xscale = c(0, 150), linecol = "deeppink",
+  confint = TRUE, B = 250, cilevel = 0.5, cicol = "gold"
+))
 }
 \references{
 Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2023).

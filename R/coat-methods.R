@@ -37,9 +37,10 @@
 #' @param pch,cex,col,linecol,lty,bg graphical parameters for the scatter plot and limits
 #' of agreement in the Bland-Altman plot (scatter plot character, character extension, plot color,
 #' line color, line types, and background color).
-#' @param add_boot_ci logical. Should nonparametric bootstrap percentile confidence intervals be plotted?
-#' @param B numeric number of bootstrap samples to be used if \code{add_boot_ci} is TRUE.
-#' @param confidence_level numeric level of the confidence intervals. Only used if \code{add_ci} is TRUE.
+#' @param confint logical. Should nonparametric bootstrap percentile confidence intervals be plotted?
+#' @param B numeric. Number of bootstrap samples to be used if \code{confint = TRUE}.
+#' @param cilevel numeric. Level of the confidence intervals if \code{confint = TRUE}.
+#' @param cicol color specification for the confidence intervals if \code{confint = TRUE}.
 #' @param xscale,yscale numeric specification of scale of x-axis and y-axis, respectively.
 #' By default the range of all scatter plots and limits of agreement across all nodes
 #' are used.
@@ -174,9 +175,10 @@ node_baplot <- function(obj,
                         linecol = 4,
 		        lty = c(1, 2),
 			bg = "white",
-			add_boot_ci = FALSE,
+			confint = FALSE,
 			B = 500,
-			confidence_level = 0.95,
+			cilevel = 0.95,
+                        cicol = "lightgray",
 		        xscale = NULL,
 		        yscale = NULL,
 		        ylines = 3,
@@ -252,13 +254,8 @@ node_baplot <- function(obj,
 
         pushViewport(plot)
 
-        grid.xaxis()
-        grid.yaxis()
-        grid.rect(gp = gpar(fill = "transparent"))
-	grid.clip()
-
 	## confidence intervals
-	if (add_boot_ci) {
+	if (confint) {
 	  loa_boot <- sapply(1:B, function(z) {
 	    boot_index <- sample(1:length(yn), length(yn), replace = TRUE)	  
 	    wn_boot <- weighted.mean(yn[boot_index], wn[boot_index]) 
@@ -267,12 +264,18 @@ node_baplot <- function(obj,
 	    wn_boot + c(1, 0, -1) * qnorm((1 - level)/2) * sqrt(var_boot)
 	  })
 
-	  stats_boot <- apply(loa_boot, 1, function(z) quantile(z, probs = 0:1 + c(1, -1) * (1-confidence_level)/2))
+	  stats_boot <- apply(loa_boot, 1, function(z) quantile(z, probs = 0:1 + c(1, -1) * (1-cilevel)/2))
 	  
-	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 1L], each = 2), "native"), gp = gpar(fill = "grey", alpha = 0.7))
-	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 2L], each = 2), "native"), gp = gpar(fill = "grey", alpha = 0.7))
-          grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 3L], each = 2), "native"), gp = gpar(fill = "grey", alpha = 0.7))
+	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 1L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
+	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 2L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
+          grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 3L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
 	}	
+
+        ## box and axes
+        grid.xaxis()
+        grid.yaxis()
+        grid.rect(gp = gpar(fill = "transparent"))
+	grid.clip()
 
 	## scatterplot
         grid.points(unit(xn, "native"), unit(yn, "native"), size = unit(cex, "char"), pch = pch, gp = gpar(col = col))
