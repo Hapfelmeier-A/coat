@@ -261,7 +261,7 @@ node_baplot <- function(obj,
 	    wn_boot <- weighted.mean(yn[boot_index], wn[boot_index]) 
 	    sd_boot <- sqrt(weighted.mean((yn[boot_index] - wn_boot)^2, wn[boot_index]) * sum(wn[boot_index])/(sum(wn[boot_index]) - 1))
 
-	    wn_boot + c(1, 0, -1) * qnorm((1 - level)/2) * sqrt(sd_boot)
+	    wn_boot + c(1, 0, -1) * qnorm((1 - level)/2) * sd_boot
 	  })
 
 	  stats_boot <- apply(loa_boot, 1, function(z) quantile(z, probs = 0:1 + c(1, -1) * (1-cilevel)/2))
