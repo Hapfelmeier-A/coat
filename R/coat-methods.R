@@ -115,7 +115,7 @@ print.coat <- function(x, digits = 2L,
     w <- node$fitted[["(weights)"]]
     if (is.null(w)) w <- rep.int(1, NROW(y))
     m <- weighted.mean(y, w)
-    s <- sqrt(weighted.mean((y - m)^2, w))
+    s <- sqrt(weighted.mean((y - m)^2, w) * sum(w)/(sum(w) - 1))
     paste(c("Bias =", "SD ="), format(round(c(m, s), digits = digits), nsmall = digits), collapse = ", ")
   }, by_node = FALSE)
 
@@ -142,8 +142,8 @@ coef.coat <- function(object, node = NULL, drop = TRUE, ...) {
       yn <- yn[, 1L] - yn[, 2L]
       wn <- dat[["(weights)"]]
       if(is.null(wn)) wn <- rep.int(1, length(yn))
-      mv <- c("(Intercept)" = weighted.mean(yn, wn))
-      mv <- c(mv, "(Variance)" = weighted.mean((yn - mv)^2, wn))
+      mv <- c("Bias" = weighted.mean(yn, wn))
+      mv <- c(mv, "SD" = sqrt(weighted.mean((yn - mv)^2, wn) * sum(wn)/(sum(wn) - 1)))
     })
   }
   names(cf) <- node
@@ -192,9 +192,9 @@ node_baplot <- function(obj,
     y <- y[, 1L] - y[, 2L]
     stopifnot(is.numeric(x), is.numeric(y))
 
-    ## limits of agreement
+    ## ## limits of agreement
     cf <- coef(obj, drop = FALSE)
-    loa <- cbind(cf[, 1L] - qnorm((1 - level)/2) * sqrt(cf[, 2L]), cf[, 1L] + qnorm((1 - level)/2) * sqrt(cf[, 2L]))
+    loa <- cbind(cf[, 1L] - qnorm((1 - level)/2) * cf[, 2L], cf[, 1L] + qnorm((1 - level)/2) * cf[, 2L])
 
     if (is.null(xscale)) xscale <- range(x) + c(-0.1, 0.1) * diff(range(x))
     if (is.null(yscale)) yscale <- range(c(y, loa)) + c(-0.1, 0.1) * diff(range(c(y, loa)))
@@ -214,8 +214,8 @@ node_baplot <- function(obj,
         ## extract mean and variance
         cf <- info_node(node)$coefficients
         if(is.null(cf)) {
-          cf <- c("(Intercept)" = weighted.mean(yn, wn))
-          cf <- c(cf, "(Variance)" = weighted.mean((yn - cf)^2, wn))
+          cf <- c("Bias" = weighted.mean(yn, wn))
+          cf <- c(cf, "SD" = sqrt(weighted.mean((yn - cf)^2, wn) * sum(wn)/(sum(wn) - 1)))
         }
 
         ## grid
@@ -281,7 +281,7 @@ node_baplot <- function(obj,
         grid.points(unit(xn, "native"), unit(yn, "native"), size = unit(cex, "char"), pch = pch, gp = gpar(col = col))
 
         ## limits of agreement
-        loa <- cf[1L] + c(1, 0, -1) * qnorm((1 - level)/2) * sqrt(cf[2L])
+        loa <- cf[1L] + c(1, 0, -1) * qnorm((1 - level)/2) * cf[2L]
         grid.lines(unit(c(0, 1), "npc"), unit(loa[2L], "native"), gp = gpar(col = linecol, lty = lty[1L]))
         grid.lines(unit(c(0, 1), "npc"), unit(loa[1L], "native"), gp = gpar(col = linecol, lty = lty[2L]))
         grid.lines(unit(c(0, 1), "npc"), unit(loa[3L], "native"), gp = gpar(col = linecol, lty = lty[2L]))
