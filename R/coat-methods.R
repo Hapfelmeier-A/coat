@@ -89,6 +89,8 @@
 #' autoplot(tr, digits = 3) + ggtitle("Conditional method agreement tree") +
 #'   theme(plot.title = element_text(hjust = 0.5))
 
+#' @return The methods \code{\link[coat]{print.coat}}, \code{\link[coat]{plot.coat}}, \code{\link[coat]{autoplot.coat}} and \code{\link[coat]{node_baplot}} have no return values and are called to print or plot an object of class \code{coat}. See Details.
+#’ The method \code{\link[coat]{coef.coat}} extracts coefficients from an \code{object} of class \code{coat}, which are returned as a numeric vector or matrix.
 
 #' @rdname coat-methods
 #' @method print coat
