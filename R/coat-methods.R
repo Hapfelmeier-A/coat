@@ -53,6 +53,12 @@
 #' @param label.align numeric. Specification between 0 and 1 for the alignment of labels
 #' relative to the plot width or \code{xlim.max}.
 #' @param ... further arguments passed to methods.
+#' 
+#' @return The \code{print()} method returns the printed object invisibly.
+#' The \code{coef()} method returns the vector (for a single node) or matrix (for multiple nodes) of estimated parameters (bias and standard deviation).
+#' The \code{plot()} method returns \code{NULL}.
+#' The \code{node_baplot()} panel-generating function returns a function that can be plugged into the \code{plot()} method.
+#' The \code{autoplot()} method returns a \code{ggplot} object.
 #'
 #' @examples
 #' \dontshow{ if(!requireNamespace("MethComp")) {
@@ -88,9 +94,6 @@
 #' autoplot(tr)
 #' autoplot(tr, digits = 3) + ggtitle("Conditional method agreement tree") +
 #'   theme(plot.title = element_text(hjust = 0.5))
-
-#' @return The methods \code{\link[coat]{print.coat}}, \code{\link[coat]{plot.coat}}, \code{\link[coat]{autoplot.coat}} and \code{\link[coat]{node_baplot}} have no return values and are called to print or plot an object of class \code{coat}. See Details.
-#’ The method \code{\link[coat]{coef.coat}} extracts coefficients from an \code{object} of class \code{coat}, which are returned as a numeric vector or matrix.
 
 #' @rdname coat-methods
 #' @method print coat

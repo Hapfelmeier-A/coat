@@ -114,6 +114,13 @@ a character or a \code{function(id, nobs)}.}
 \item{label.align}{numeric. Specification between 0 and 1 for the alignment of labels
 relative to the plot width or \code{xlim.max}.}
 }
+\value{
+The \code{print()} method returns the printed object invisibly.
+The \code{coef()} method returns the vector (for a single node) or matrix (for multiple nodes) of estimated parameters (bias and standard deviation).
+The \code{plot()} method returns \code{NULL}.
+The \code{node_baplot()} panel-generating function returns a function that can be plugged into the \code{plot()} method.
+The \code{autoplot()} method returns a \code{ggplot} object.
+}
 \description{
 Extracting information from or visualization of conditional method agreement trees.
 Visualizations use trees with Bland-Altman plots in terminal nodes, drawn either
