@@ -84,10 +84,10 @@ gaussfit <- function(y, x = NULL, start = NULL, weights = NULL,
 #' @noRd
 batrafo <- function(data, weights, control, ...) {
   y <- data$data[, data$variables$y, drop = TRUE]
-  if(NCOL(y) != 2L) stop("'y' data must provide exactly 2 columns")
-  y <- y[, 1L] - y[, 2L]
+  n <- nrow(data$data)
+  variance <- (y - mean(y))^2 * (n/(n - 1))
   function(subset, weights, info, estfun, object, ...) {
-    list(estfun = cbind(mean = y, var = (y - mean(y))^2), unweighted = TRUE)
+    list(estfun = cbind(mean = y, var = variance), unweighted = TRUE)
   }
 }
 
@@ -95,8 +95,6 @@ batrafo <- function(data, weights, control, ...) {
 #' @noRd
 batrafo.mean <- function(data, weights, control, ...) {
   y <- data$data[, data$variables$y, drop = TRUE]
-  if(NCOL(y) != 2L) stop("'y' data must provide exactly 2 columns")
-  y <- y[, 1L] - y[, 2L]
   function(subset, weights, info, estfun, object, ...) {
     list(estfun = y, unweighted = TRUE)
   }
@@ -106,10 +104,10 @@ batrafo.mean <- function(data, weights, control, ...) {
 #' @noRd
 batrafo.var <- function(data, weights, control, ...) {
   y <- data$data[, data$variables$y, drop = TRUE]
-  if(NCOL(y) != 2L) stop("'y' data must provide exactly 2 columns")
-  y <- y[, 1L] - y[, 2L]
+  n <- nrow(data$data)
+  variance <- (y - mean(y))^2 * (n/(n - 1))
   function(subset, weights, info, estfun, object, ...) {
-    list(estfun = (y - mean(y))^2, unweighted = TRUE)
+    list(estfun = variance, unweighted = TRUE)
   }
 }
 
@@ -117,8 +115,6 @@ batrafo.var <- function(data, weights, control, ...) {
 #' @noRd
 bafit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ..., estfun = FALSE, object = FALSE)
 {
-  if(NCOL(y) != 2L) stop("'y' must provide exactly 2 columns")
-  y <- y[, 1L] - y[, 2L]
   if(is.null(x)) x <- cbind("(Intercept)" = rep.int(1, length(y)))
   m <- lm.fit(x, y)
   b <- m$coefficients
@@ -131,4 +127,70 @@ bafit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ...,
     estfun = if(estfun) cbind(m$residuals/s2 * x, "(Variance)" = (m$residuals^2 - s2)/(2 * s2^2)) else NULL,
     object = if(object) lm(y ~ 0 + x) else NULL
   )
+}
+
+#'Transformation function for unpaired measurements
+batrafo.repl.unpair <- function(data, weights, control, ...){
+  y <- data$data[, data$variables$y, drop = TRUE]
+  n <- nrow(data$data)
+  nr1 <- data$data$nr1
+  nr2 <- data$data$nr2
+  tau <- (y - mean(y))^2 * (n/(n - 1)) # between subject variance
+  s1 <- data$data$rss1 / (mean(nr1) - 1) # within subject variance
+  s2 <- data$data$rss2 / (mean(nr2) - 1)
+  overallvar <- tau + (1 - (1/n) * sum(1/nr1)) * s1 + (1 - (1/n) * sum(1/nr2)) * s2
+  function(subset, weights, info, estfun, object, ...){
+    list(estfun = cbind(Bias = y, Variance = overallvar), unweighted = TRUE)
+  }
+}
+
+#' Transformation function for paired measurements
+batrafo.repl.pair <- function(data, weights, control, ...){
+  y <- data$data[, data$variables$y, drop = TRUE]
+  n <- nrow(data$data)
+  nr <- data$data$nr
+  bias <- y * nr * (n / sum(nr))
+  tau <- (y - weighted.mean(y, nr))^2 * nr * (n/(n - 1)) # between subject variance
+  sigma <- data$data$rss / (mean(nr) - 1) # within subject variance
+  overallvar <- (tau - sigma) / ((sum(nr)^2 - sum(nr^2)) / ((n - 1) * sum(nr))) + sigma
+  function(subset, weights, info, estfun, object, ...){
+    list(estfun = cbind(Bias = bias, Variance = overallvar), unweighted = TRUE)
+  }
+}
+
+#' Reshape function used to prepare the data.
+#'
+coat.reshape <- function(formula, data, id = NULL, meth = NULL, replicates = FALSE, paired = FALSE){
+  y <- all.vars(formula)[1]
+  x <- all.vars(formula)[-1]
+  if (replicates) {
+    if (!paired) {
+      data <- data.frame(cbind(unique(data[, id]),
+                               c(by(data[, c(y, meth)], data[, id], function(z) diff(by(z[, y], z[, meth], mean, na.rm = TRUE)))),
+                               c(by(data[, y], data[, id], mean, na.rm = TRUE)),
+                               data[!duplicated(data[, id]), x],
+                               do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) length(na.omit(z2)))))),
+                               do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) sum(aov(z2 ~ 1)$residuals^2)))))
+      ))
+      names(data) <- c("id", "_mean_diff_", "_means_", x, "nr1", "nr2", "rss1", "rss2")
+    } else {
+      data <- data.frame(cbind(unique(data[, id]),
+                               c(by(data[, c(y, meth)], data[, id], function(z) mean(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff)))),
+                               c(by(data[, y], data[, id], mean)),
+                               data[!duplicated(data[, id]), x],
+                               table(data[, id]) / 2,
+                               c(by(data[, c(y, meth)], data[, id], function(z) sum(aov(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff) ~ 1)$residuals^2)))
+      ))
+      names(data) <- c("id", "_mean_diff_", "_means_", x, "nr", "rss")
+    }
+  }
+  else {
+    data <- data.frame(cbind(unique(data[, id]),
+                             c(by(data[, y], data[, id], diff, na.rm = TRUE)),
+                             c(by(data[, y], data[, id], mean, na.rm = TRUE)),
+                             data[!duplicated(data[, id]), x]
+    ))
+    names(data) <- c("id", "_diff_", "_means_", x)
+  }
+  return(data)
 }
