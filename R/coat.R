@@ -6,8 +6,8 @@
 #' via conditional inference trees (CTree) or using model-based recursive
 #' partitioning (MOB).
 #'
-#' @param formula symbolic description of the model of type \code{y1 + y2 ~ x1 + ... + xk}.
-#' The left-hand side should specify a pair of measurements (\code{y1} and \code{y2}) for the Bland-Altman analysis.
+#' @param formula symbolic description of the model of type \code{y ~ x1 + ... + xk}.
+#' The left-hand side should specify the measurements (\code{y}) for the Bland-Altman analysis.
 #' The right-hand side can specify any number of potential split variables for the tree.
 #' @param data,subset,na.action arguments controlling the formula processing
 #' via \code{\link[stats]{model.frame}}.
@@ -49,18 +49,12 @@
 #' \code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}},
 #' respectively, for details.
 #'
-#' In addition to the standard specification of the two response measurements in the
-#' formula via \code{y1 + y2 ~ ...}, it is also possible to use \code{y1 - y2 ~ ...}.
-#' The latter may be more intuitive for users that think of it as a model for the
-#' difference of two measurements. Finally \code{cbind(y1, y2) ~ ...} also works.
-#' Internally, all of these are processed in the same way, namely as a bivariate
-#' dependent variable that can then be modeled and plotted appropriately.
 #'
 #' To add the means of the measurement pair as a potential splitting variable,
 #' there are also different equivalent strategies. The standard specification would
-#' be via the \code{means} argument: \code{y1 + y2 ~ x1 + ..., means = TRUE}.
+#' be via the \code{means} argument: \code{y ~ x1 + ..., means = TRUE}.
 #' Alternatively, the user can also extend the formula argument via
-#' \code{y1 + y2 ~ x1 + ... + means(y1, y2)}.
+#' \code{y ~ x1 + ... + means(y1, y2)}.
 #'
 #' The SD is estimated by the usual sample standard deviation in each subgroup,
 #' i.e., divided by the sample size \eqn{n - 1}. Note that the inference in the
@@ -78,21 +72,16 @@
 #'     stop("the MethComp package is required for this example but is not installed")
 #'   } else q() }
 #' }
-#' ## package and data (reshaped to wide format)
+#' ## package and data
 #' library("coat")
 #' data("scint", package = "MethComp")
-#' scint_wide <- reshape(scint, v.names = "y", timevar = "meth", idvar = "item", direction = "wide")
 #'
 #' ## coat based on ctree() without and with mean values of paired measurements as predictor
-#' tr1 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide)
-#' tr2 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide, means = TRUE)
+#' tr1 <- coat(y ~ age + sex, data = scint)
 #'
 #' ## display
 #' print(tr1)
 #' plot(tr1)
-#'
-#' print(tr2)
-#' plot(tr2)
 #' 
 #' ## tweak various graphical arguments of the panel function (just for illustration):
 #' ## different colors, nonparametric bootstrap percentile confidence intervals, ...
@@ -107,37 +96,48 @@
 #' @importFrom partykit ctree_control mob_control
 #'
 #' @export
-coat <- function(formula, data, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
-  minsize = 10L, minbucket = minsize, minsplit = NULL, ...)
-{
+coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
+                     replicates = FALSE, paired = FALSE, minsize = 10L, alpha = 0.05, minbucket = minsize, minsplit = NULL, ...){
+  
+  ## set replicates with paired measurements
+  if(paired) replicates <- TRUE
+  
   ## type of tree
   type <- match.arg(tolower(type), c("ctree", "mob"))
-
+  if (replicates & type != "ctree") {
+    type <- "ctree"
+    warning("'type' was set to 'ctree' with replicate measurements")
+  }
+  
   ## keep call
   cl <- match.call(expand.dots = TRUE)
-
+  
   ## preparation of ctree/mob call
   m <- match.call(expand.dots = FALSE)
   if(missing(na.action)) m$na.action <- na.omit
-
+  
+  ## update formula
+  if (replicates) {
+    if (!paired) {
+      formula <- as.formula(paste("`_mean_diff_` ~", paste(c("id", "nr1", "nr2", "rss1", "rss2", "`_means_`"), collapse = "+"), "|", formula[3]))
+    } else {
+      formula <- as.formula(paste("`_mean_diff_` ~", paste(c("id", "nr", "rss", "`_means_`"), collapse = "+"), "|", formula[3]))
+    }
+  } else {
+    formula <- as.formula(paste("`_diff_` ~ id + `_means_`|", formula[3]))
+  }
+  m$formula <- formula
+  
   ## if desired "means(y1, y2)" is added as split variable
   if(means) {
     formula <- update(formula, . ~ . + `_means_`)
-    formula[[3L]][[3L]] <- formula[[2]]
-    formula[[3L]][[3L]][[1L]] <- as.name("means")
     m$formula <- formula
   }
   
-  ## if measurements are specified as `y1 - y2`, switch to `y1 + y2` internally
-  if(formula[[2L]][[1L]] == as.name("-")) {
-    formula[[2L]][[1L]] <- as.name("+")
-    m$formula <- formula
-  }
-
   ## update/remove processed arguments
   m$means <- NULL
   m$type <- NULL
-
+  
   ## process hyperparameters
   if(!missing(minsize) && !missing(minbucket)) {
     warning("the minimal subgroup size should either be specified by 'minsize' or 'minbucket' but not both, using 'minsize'")
@@ -149,34 +149,53 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
     warning("the minimal sample size to consider splitting ('minsplit') must be at least twice the minimal subgroup size ('minsize'), increased accordingly")
     minsplit <- 2L * minsize
   }
-
-  ## add fit/trafo function
+  
+  ## add trafo function for ctree
+  m[[1L]] <- as.call(quote(partykit::ctree))
+  if(replicates) {
+    if(paired) {m$ytrafo <- batrafo.repl.pair
+    } else m$ytrafo <- batrafo.repl.unpair
+  }  else m$ytrafo <- batrafo
+  m$control <- partykit::ctree_control(minbucket = minsize, minsplit = minsplit, alpha = alpha, ...)
+  
+  ## add fit function for mob
   if(type == "mob") {
     m[[1L]] <- as.call(quote(partykit::mob))
     m$fit <- bafit
-    m$control <- partykit::mob_control(minsize = minsize, minsplit = minsplit, ...)
+    m$control <- partykit::mob_control(minsize = minsize, minsplit = minsplit, alpha = alpha, ...)
     m$control$ytype <- "matrix"
-  } else {
-    m[[1L]] <- as.call(quote(partykit::ctree))
-    m$ytrafo <- batrafo
-    m$control <- partykit::ctree_control(minbucket = minsize, minsplit = minsplit, ...)
   }
-
+  
   ## fit tree
   rval <- eval(m, parent.frame())
   
-  ## informative warning if tree considered splitting at all
+  ## informative warning whether tree considered splitting at all
   if(is.null(rval$node$split) && (is.null(rval$node$info) || is.null(rval$node$info$test))) {
     message("Info: The tree has no splits due to the hyperparameters ('minsize', 'minsplit', ...), no test were carried out, possibly consider adjusting the hyperparameters.")
   }
   
+  if(is.null(rval)){message("we did not get there")}
+  
   ## unify output
   rval$info$call <- cl
   class(rval) <- c("coat", class(rval))
-  if(type == "mob") {
-    rval$fitted[["(weights)"]] <- model.weights(rval$data)
-    if(is.null(rval$fitted[["(weights)"]])) rval$fitted[["(weights)"]] <- 1
-    rval$fitted[["(response)"]] <- rval$data[, attr(rval$info$terms$response, "term.labels"), drop = FALSE]
+  
+  # for the further functions we add an additional class paired/unpaired
+  if(replicates) {
+    if(paired) {class(rval) <- c(class(rval), "paired")
+    } else class(rval) <- c(class(rval), "unpaired")
   }
+  
   return(rval)
+}
+
+coat <- function(formula, data, id = NULL, meth = NULL, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
+                 replicates = FALSE, paired = FALSE, minsize = 10L, alpha = 0.05, minbucket = minsize, minsplit = NULL, ...){
+  
+  if(replicates & (is.null(id) | is.null(meth))) stop("arguments id or meth are missing")
+  
+  data <- coat.reshape(formula, data, id = id, meth = meth, replicates = replicates, paired = paired)
+  fit <- coat.fit(formula, data, replicates = replicates, paired = paired, type = type, means = means, na.action = na.action,
+                  minsize = minsize, minsplit = minsplit, alpha = alpha, ...)
+  return(fit)
 }
