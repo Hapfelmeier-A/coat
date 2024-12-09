@@ -178,7 +178,7 @@ coat.reshape <- function(formula, data, id = NULL, meth = NULL, replicates = FAL
                                c(by(data[, c(y, meth)], data[, id], function(z) mean(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff)))),
                                c(by(data[, y], data[, id], mean)),
                                data[!duplicated(data[, id]), x],
-                               table(data[, id]) / 2,
+                               as.numeric(table(data[, id]) / 2),
                                c(by(data[, c(y, meth)], data[, id], function(z) sum(aov(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff) ~ 1)$residuals^2)))
       ))
       names(data) <- c("id", "_mean_diff_", "_means_", x, "nr", "rss")
