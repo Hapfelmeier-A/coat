@@ -191,11 +191,14 @@ coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, t
 
 coat <- function(formula, data, id = NULL, meth = NULL, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
                  replicates = FALSE, paired = FALSE, minsize = 10L, alpha = 0.05, minbucket = minsize, minsplit = NULL, ...){
+  cl <- match.call()
   
   if(replicates & (is.null(id) | is.null(meth))) stop("arguments id or meth are missing")
   
   data <- coat.reshape(formula, data, id = id, meth = meth, replicates = replicates, paired = paired)
   fit <- coat.fit(formula, data, replicates = replicates, paired = paired, type = type, means = means, na.action = na.action,
                   minsize = minsize, minsplit = minsplit, alpha = alpha, ...)
+  
+  fit$info$call <- cl
   return(fit)
 }
