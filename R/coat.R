@@ -119,20 +119,20 @@ coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, t
   ## update formula
   if (replicates) {
     if (!paired) {
-      formula <- as.formula(paste("`_mean_diff_` ~", paste(c("id", "nr1", "nr2", "rss1", "rss2", "`_means_`"), collapse = "+"), "|", formula[3]))
+      formula <- as.formula(paste("`_mean_diff_` ~", paste(c("id", "nr1", "nr2", "rss1", "rss2", "`_means_`"), collapse = "+"), "|", formula[3], ifelse(means, "+ `_means_`", "")))
     } else {
-      formula <- as.formula(paste("`_mean_diff_` ~", paste(c("id", "nr", "rss", "`_means_`"), collapse = "+"), "|", formula[3]))
+      formula <- as.formula(paste("`_mean_diff_` ~", paste(c("id", "nr", "rss", "`_means_`"), collapse = "+"), "|", formula[3], ifelse(means, "+ `_means_`", "")))
     }
   } else {
-    formula <- as.formula(paste("`_diff_` ~ id + `_means_`|", formula[3]))
+    formula <- as.formula(paste("`_diff_` ~ id + `_means_`|", formula[3], ifelse(means, "+ `_means_`", "")))
   }
   m$formula <- formula
   
-  ## if desired "means(y1, y2)" is added as split variable
-  if(means) {
-    formula <- update(formula, . ~ . + `_means_`)
-    m$formula <- formula
-  }
+  # ## if desired "means(y1, y2)" is added as split variable
+  # if(means) {
+  #  formula <- update(formula, . ~ . + `_means_`)
+  #  m$formula <- formula
+  # }
   
   ## update/remove processed arguments
   m$means <- NULL
