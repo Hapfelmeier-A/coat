@@ -246,18 +246,38 @@ node_baplot <- function(obj,
     rval <- function(node) {
 
     ## extract data
-	  nid <- id_node(node)
-	  dat <- data_party(obj, nid)
-    yn <- dat[["(response)"]]
-    xn <- dat[["_means_"]]
+	nid <- id_node(node)
+	dat <- data_party(obj, nid)
+	n <- nrow(dat)
+        yn <- dat[["(response)"]]
+        xn <- dat[["_means_"]]
   	wn <- dat[["(weights)"]]
   	if(is.null(wn)) wn <- rep.int(1, length(yn))
   	
   	## extract mean and variance
   	cf <- info_node(node)$coefficients
   	if(is.null(cf)) {
-  	  cf <- c("Bias" = weighted.mean(yn, wn))
-  	  cf <- c(cf, "SD" = sqrt(weighted.mean((yn - cf)^2, wn) * sum(wn)/(sum(wn) - 1)))
+  	  cf <- weighted.mean(yn, wn)
+  	  cf <- c(cf, sqrt(weighted.mean((yn - cf)^2, wn) * sum(wn)/(sum(wn) - 1)))
+  	
+  	  if(!is.na(class(obj)[4])) {
+  	    if(class(obj)[4] == "paired") {
+  	      nr <- dat$nr
+  	      cf <- weighted.mean(yn, nr)
+  	      tau <- sum((yn - weighted.mean(yn, nr))^2 * nr * (n/(n - 1))) / n
+  	      sigma <- sum(dat$rss / (mean(nr) - 1)) / n
+  	      overallvar <- (tau - sigma) / ((sum(nr)^2 - sum(nr^2)) / ((n - 1) * sum(nr))) + sigma
+  	      cf <- c(cf, sqrt(overallvar))
+  	    } else {
+  	      nr1 <- dat$nr1
+  	      nr2 <- dat$nr2
+  	      tau <- sum((yn - mean(yn))^2 * (n/(n - 1))) / n
+  	      s1 <- sum(dat$rss1/(mean(nr1) - 1)) / n
+  	      s2 <- sum(dat$rss2/(mean(nr2) - 1)) / n
+  	      overallvar <- tau + (1 - (1/n) * sum(1/nr1)) * s1 + (1 - (1/n) * sum(1/nr2)) * s2
+  	      cf <- c(cf[1], sqrt(overallvar))
+  	    }
+  	  }
   	}
   	
   	## grid
