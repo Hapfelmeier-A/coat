@@ -355,7 +355,7 @@ node_baplot <- function(obj,
           y = unit(loa[i], "native"),
           width = unit(1, "lines") + max(unit(1, "strwidth", loalab)),
           height = unit(1, "lines") + max(unit(1, "strheight", loalab)),
-          gp = gpar(col = linecol, fill = bg))
+          gp = gpar(col = linecol, fill = bg, alpha = 0.5))
         grid.text(loalab[i],
                   x = unit(1, "npc") - unit(1, "lines") - max(unit(0.5, "strwidth", loalab)),
                   y = unit(loa[i], "native"),
