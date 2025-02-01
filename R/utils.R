@@ -168,7 +168,7 @@ coat.reshape <- function(formula, data, id = NULL, meth = NULL, replicates = FAL
       data <- data.frame(cbind(unique(data[, id]),
                                c(by(data[, c(y, meth)], data[, id], function(z) diff(by(z[, y], z[, meth], mean, na.rm = TRUE)))),
                                c(by(data[, y], data[, id], mean, na.rm = TRUE)),
-                               data[!duplicated(data[, id]), x],
+                               data[!duplicated(data[, id]), x, drop = FALSE],
                                do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) length(na.omit(z2)))))),
                                do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) sum(aov(z2 ~ 1)$residuals^2)))))
       ))
@@ -177,7 +177,7 @@ coat.reshape <- function(formula, data, id = NULL, meth = NULL, replicates = FAL
       data <- data.frame(cbind(unique(data[, id]),
                                c(by(data[, c(y, meth)], data[, id], function(z) mean(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff)))),
                                c(by(data[, y], data[, id], mean)),
-                               data[!duplicated(data[, id]), x],
+                               data[!duplicated(data[, id]), x, drop = FALSE],
                                as.numeric(table(data[, id]) / 2),
                                c(by(data[, c(y, meth)], data[, id], function(z) sum(aov(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff) ~ 1)$residuals^2)))
       ))
@@ -188,7 +188,7 @@ coat.reshape <- function(formula, data, id = NULL, meth = NULL, replicates = FAL
     data <- data.frame(cbind(unique(data[, id]),
                              c(by(data[, y], data[, id], diff, na.rm = TRUE)),
                              c(by(data[, y], data[, id], mean, na.rm = TRUE)),
-                             data[!duplicated(data[, id]), x]
+                             data[!duplicated(data[, id]), x, drop = FALSE]
     ))
     names(data) <- c("id", "_diff_", "_means_", x)
   }
