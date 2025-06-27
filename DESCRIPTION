@@ -1,7 +1,7 @@
 Package: coat
 Title: Conditional Method Agreement Trees (COAT)
-Version: 0.2.0
-Date: 2023-07-06
+Version: 0.2.1
+Date: 2025-06-27
 Authors@R: c(person("Alexander", "Hapfelmeier", role = c("aut", "cre"),
                       email = "Alexander.Hapfelmeier@mri.tum.de", comment = c(ORCID = "0000-0001-6765-6352")),
              person("Siranush", "Karapetyan", role = "aut", 
@@ -16,7 +16,7 @@ Description: Agreement of continuously scaled measurements made by two technique
              in method agreement.
 License: GPL-2 | GPL-3
 Depends: R (>= 3.5.0)
-Imports: partykit, ggplot2, grid, ggparty, gridExtra, ggtext
+Imports: partykit, grid, ggparty, gridExtra, ggtext
 Suggests: disttree, MethComp
 Additional_repositories: https://R-Forge.R-project.org
 Encoding: UTF-8
