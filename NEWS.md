@@ -1,3 +1,7 @@
+# Version 0.2.1
+
+* Dependency on package `ggparty` was removed due to maintenance issues.
+  
 # Version 0.2.0
 
 * First CRAN release of the package, accompanying the publication of a working
