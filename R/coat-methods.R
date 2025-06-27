@@ -47,11 +47,8 @@
 #' @param mainlab character or function. An optional title for the plots. Either
 #' a character or a \code{function(id, nobs)}.
 #' @param gp grid graphical parameters.
-#' @param xlim.max numeric. Optional value to define the upper limit of the x-axis.
-#' @param label.align numeric. Specification between 0 and 1 for the alignment of labels
-#' relative to the plot width or \code{xlim.max}.
 #' @param ... further arguments passed to methods.
-#' 
+#'
 #' @return The \code{print()} method returns the printed object invisibly.
 #' The \code{coef()} method returns the vector (for a single node) or matrix (for multiple nodes) of estimated parameters (bias and standard deviation).
 #' The \code{plot()} method returns \code{NULL}.
@@ -254,19 +251,19 @@ node_baplot <- function(obj,
 	## confidence intervals
 	if (confint) {
 	  loa_boot <- sapply(1:B, function(z) {
-	    boot_index <- sample(1:length(yn), length(yn), replace = TRUE)	  
-	    wn_boot <- weighted.mean(yn[boot_index], wn[boot_index]) 
+	    boot_index <- sample(1:length(yn), length(yn), replace = TRUE)
+	    wn_boot <- weighted.mean(yn[boot_index], wn[boot_index])
 	    sd_boot <- sqrt(weighted.mean((yn[boot_index] - wn_boot)^2, wn[boot_index]) * sum(wn[boot_index])/(sum(wn[boot_index]) - 1))
 
 	    wn_boot + c(1, 0, -1) * qnorm((1 - level)/2) * sd_boot
 	  })
 
 	  stats_boot <- apply(loa_boot, 1, function(z) quantile(z, probs = 0:1 + c(1, -1) * (1-cilevel)/2))
-	  
+
 	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 1L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
 	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 2L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
           grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 3L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
-	}	
+	}
 
         ## box and axes
         grid.xaxis()
