@@ -1,6 +1,6 @@
 # Version 0.2.1
 
-* Dependency on package `ggparty` was removed due to maintenance issues.
+* Dependency on package `ggparty` was removed due to maintenance issues. Visualization via `ggplot2()` is therefore not avialable any more. Plotting is still possible, however.
   
 # Version 0.2.0
 
