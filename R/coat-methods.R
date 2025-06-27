@@ -1,15 +1,13 @@
 #' Methods for Conditional Method Agreement Trees (COAT)
 #'
 #' Extracting information from or visualization of conditional method agreement trees.
-#' Visualizations use trees with Bland-Altman plots in terminal nodes, drawn either
-#' via grid graphics directly or via ggplot2.
+#' Visualizations use trees with Bland-Altman plots in terminal nodes, drawn
+#' via grid graphics.
 #'
 #' Various methods are provided for trees fitted by \code{\link[coat]{coat}},
-#' in particular \code{print}, \code{plot} (via \pkg{grid}/\pkg{partykit}),
-#' \code{autoplot} (via \pkg{ggplot2}/\pkg{ggparty}),
+#' in particular \code{print}, \code{plot} (via \pkg{grid}/\pkg{partykit}) and
 #' \code{coef}. The \code{plot} method draws Bland-Altman plots in the terminal panels by default,
-#' using the function \code{node_baplot}. The \code{autoplot} draws very similar plots by
-#' customizing the \code{\link[ggparty]{geom_node_plot}} "from scratch".
+#' using the function \code{node_baplot}.
 #'
 #' In addition to these dedicated \code{coat} methods, further methods are inherited
 #' from \code{\link[partykit]{ctree}} or \code{\link[partykit]{mob}}, respectively,
@@ -58,7 +56,6 @@
 #' The \code{coef()} method returns the vector (for a single node) or matrix (for multiple nodes) of estimated parameters (bias and standard deviation).
 #' The \code{plot()} method returns \code{NULL}.
 #' The \code{node_baplot()} panel-generating function returns a function that can be plugged into the \code{plot()} method.
-#' The \code{autoplot()} method returns a \code{ggplot} object.
 #'
 #' @examples
 #' \dontshow{ if(!requireNamespace("MethComp")) {
@@ -89,11 +86,6 @@
 #' plot(tr, ip_args = list(id = FALSE),
 #'   tp_args = list(col = "slategray", id = FALSE, digits = 3, pch = 19))
 #'
-#' ## visualization (via ggplot2 with ggparty)
-#' library("ggplot2")
-#' autoplot(tr)
-#' autoplot(tr, digits = 3) + ggtitle("Conditional method agreement tree") +
-#'   theme(plot.title = element_text(hjust = 0.5))
 
 #' @rdname coat-methods
 #' @method print coat
@@ -315,67 +307,3 @@ node_baplot <- function(obj,
     return(rval)
 }
 class(node_baplot) <- "grapcon_generator"
-
-
-#' @rdname coat-methods
-#' @exportS3Method ggplot2::autoplot coat
-#' @importFrom ggplot2 autoplot ggplot aes geom_hline geom_label geom_point theme_bw xlab ylab xlim theme ggtitle margin
-#' @importFrom gridExtra arrangeGrob grid.arrange tableGrob
-#' @importFrom ggtext element_markdown
-#' @importFrom ggparty ggparty geom_edge geom_edge_label geom_node_label geom_node_plot geom_node_splitvar
-#' @importFrom stats sd
-autoplot.coat <- function(object, digits = 2, xlim.max = NULL, level = 0.95, label.align = 0.95, ...) {
-  diffs. <- id <- means. <- nodesize <-  p.value <- splitvar <- NULL # due to NSE notes in R CMD check
-
-  ## augment data
-  y <- object$fitted[["(response)"]]
-  object$data$means. <- (y[, 1L] + y[, 2L])/2
-  object$data$diffs. <- y[, 1L] - y[, 2L]
-
-  if (is.null(xlim.max)) xlim.max <- max(object$data$means.)
-  level <- 1 - (1 - level)/2
-
-  if (length(object) == 1) {
-    p1 <- ggplot(data_party(object), aes(x = means., y = diffs.))
-    mean_diff <- mean(p1$data$diffs.)
-    sd_diff <- sd(p1$data$diffs.)
-
-    p2 <- p1 + geom_point(alpha = 0.8) +
-      geom_hline(aes(yintercept = mean_diff), col = 4) +
-      geom_hline(aes(yintercept = mean_diff + qnorm(level)*sd_diff), col = 4, linetype = "dashed") +
-      geom_hline(aes(yintercept = mean_diff - qnorm(level)*sd_diff), col = 4, linetype = "dashed") +
-      geom_label(aes(x = xlim.max * label.align, y = mean_diff, label = round(mean_diff, digits)), col = 4) +
-      geom_label(aes(x = xlim.max * label.align, y = mean_diff + qnorm(level)*sd_diff, label = round(mean_diff + qnorm(level)*sd_diff, digits)), col = 4) +
-      geom_label(aes(x = xlim.max * label.align, y = mean_diff - qnorm(level)*sd_diff, label = round(mean_diff - qnorm(level)*sd_diff, digits)), col = 4) +
-      theme_bw(base_size = 10) + xlab("Mean values") + ylab("Differences") + xlim(NA, xlim.max)
-    p2 + ggtitle(paste0("Node ", 1, ", N = ", length(p1$data$diffs.))) +
-      theme(plot.title = element_markdown(hjust = 0.5, linetype = 1, padding = unit(0.25, "lines"), r = grid::unit(0.15, "lines"), margin = margin(0, 0, 0, 0)))
-  } else {
-    p1 <- ggparty(object, terminal_space = 0.5)
-    mean_diff <- sapply(p1$data$nodedata_diffs., mean)
-    sd_diff <- sapply(p1$data$nodedata_diffs., sd)
-
-    p1 + geom_edge() +
-      geom_edge_label() +
-      geom_node_splitvar() +
-      geom_node_plot(gglist = list(aes(x = means., y = diffs.),
-                                   geom_point(alpha = 0.8),
-                                   geom_hline(aes(yintercept = mean_diff[id]), col = 4),
-                                   geom_hline(aes(yintercept = mean_diff[id] + qnorm(level)*sd_diff[id]), col = 4, linetype = "dashed"),
-                                   geom_hline(aes(yintercept = mean_diff[id] - qnorm(level)*sd_diff[id]), col = 4, linetype = "dashed"),
-                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id], label = round(mean_diff[id], digits)), col = 4),
-                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id] + qnorm(level)*sd_diff[id], label = round(mean_diff[id] + qnorm(level)*sd_diff[id], digits)), col = 4),
-                                   geom_label(aes(x = xlim.max * label.align, y = mean_diff[id] - qnorm(level)*sd_diff[id], label = round(mean_diff[id] - qnorm(level)*sd_diff[id], digits)), col = 4),
-                                   theme_bw(base_size = 10), xlab("Mean values"), ylab("Differences"),
-                                   xlim(NA, xlim.max))) +
-
-      geom_node_label(line_list = list(aes(label = splitvar),
-                                       aes(label = paste("p = ", round(p.value, 3)))),
-                      line_gpar = list(list(size = 12, col = "black"),
-                                       list(size = 11)),
-                      ids = "inner") +
-      geom_node_label(aes(label = paste0("Node ", id, ", N = ", nodesize)),
-                      size = 4, nudge_x = 0.02, nudge_y = 0.01,
-                      ids = "terminal")
-  }
-}
