@@ -16,7 +16,7 @@ Description: Agreement of continuously scaled measurements made by two technique
              in method agreement.
 License: GPL-2 | GPL-3
 Depends: R (>= 3.5.0)
-Imports: partykit, grid, ggparty, gridExtra, ggtext
+Imports: partykit
 Suggests: disttree, MethComp
 Additional_repositories: https://R-Forge.R-project.org
 Encoding: UTF-8
