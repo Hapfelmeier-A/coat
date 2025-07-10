@@ -67,10 +67,10 @@
 #' MOB algorithm internally uses the maximum likelihood estimate (divided by \eqn{n})
 #' instead so the the fluctuation tests for parameter instability can be applied.
 #'
-#' @references Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2023).
-#' \dQuote{Tree Models for Assessing Covariate-Dependent Method Agreement.}
-#' arXiv 2306.04456, \emph{arXiv.org E-Print Archive}.
-#' \doi{10.48550/arXiv.2306.04456}
+#' @references Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2025).
+#' \dQuote{Tree models for assessing covariate-dependent method agreement with an application to physical activity measurements.}
+#' Journal of the Royal Statistical Society Series C: Applied Statistics, Volume 74, Issue 3, June 2025, Pages 775–799.
+#' \doi{10.1093/jrsssc/qlae077}
 #'
 #' @examples
 #' \dontshow{ if(!requireNamespace("MethComp")) {
@@ -93,7 +93,7 @@
 #'
 #' print(tr2)
 #' plot(tr2)
-#' 
+#'
 #' ## tweak various graphical arguments of the panel function (just for illustration):
 #' ## different colors, nonparametric bootstrap percentile confidence intervals, ...
 #' plot(tr1, tp_args = list(
@@ -127,7 +127,7 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
     formula[[3L]][[3L]][[1L]] <- as.name("means")
     m$formula <- formula
   }
-  
+
   ## if measurements are specified as `y1 - y2`, switch to `y1 + y2` internally
   if(formula[[2L]][[1L]] == as.name("-")) {
     formula[[2L]][[1L]] <- as.name("+")
@@ -164,12 +164,12 @@ coat <- function(formula, data, subset, na.action, weights, means = FALSE, type 
 
   ## fit tree
   rval <- eval(m, parent.frame())
-  
+
   ## informative warning if tree considered splitting at all
   if(is.null(rval$node$split) && (is.null(rval$node$info) || is.null(rval$node$info$test))) {
     message("Info: The tree has no splits due to the hyperparameters ('minsize', 'minsplit', ...), no test were carried out, possibly consider adjusting the hyperparameters.")
   }
-  
+
   ## unify output
   rval$info$call <- cl
   class(rval) <- c("coat", class(rval))
