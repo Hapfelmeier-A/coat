@@ -13,6 +13,11 @@
 #' @param type character string specifying whether \code{"test"} statistics (default), the \code{"model"} or \code{"both"} should be printed.
 #' @param ... further control arguments, passed to \code{\link[partykit]{ctree_control}}
 #'
+#' @references Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2025).
+#' \dQuote{Tree models for assessing covariate-dependent method agreement with an application to physical activity measurements.}
+#' Journal of the Royal Statistical Society Series C: Applied Statistics, Volume 74, Issue 3, June 2025, Pages 775–799.
+#' \doi{10.1093/jrsssc/qlae077}
+#'
 #' @examples
 #' \dontshow{ if(!requireNamespace("MethComp")) {
 #'   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
@@ -75,7 +80,6 @@ batest <- function(formula, data, subset, na.action, weights, ...)
   test[2, c(3, 5)] <- partykit::sctest.constparty(rval.var, node = 1L)
   test[3, c(3, 5)] <- partykit::sctest.constparty(rval, node = 1L)
   test[1:2, 1:2] <- t(coef.coat(rval))
-  test[2, 1:2] <- sqrt(test[2, 1:2])
   test[, 4] <- c(1, 1, 2)
 
   ## unify output
@@ -115,3 +119,4 @@ print.batest <- function(x, digits = 2, type = c("test", "model", "both"), ...) 
 plot.batest <- function(x, ...) {
   plot(x$model, ...)
 }
+

@@ -5,7 +5,6 @@
 \alias{coef.coat}
 \alias{plot.coat}
 \alias{node_baplot}
-\alias{autoplot.coat}
 \title{Methods for Conditional Method Agreement Trees (COAT)}
 \usage{
 \method{print}{coat}(
@@ -41,15 +40,6 @@ node_baplot(
   id = TRUE,
   mainlab = NULL,
   gp = gpar()
-)
-
-\method{autoplot}{coat}(
-  object,
-  digits = 2,
-  xlim.max = NULL,
-  level = 0.95,
-  label.align = 0.95,
-  ...
 )
 }
 \arguments{
@@ -108,31 +98,23 @@ are used.}
 a character or a \code{function(id, nobs)}.}
 
 \item{gp}{grid graphical parameters.}
-
-\item{xlim.max}{numeric. Optional value to define the upper limit of the x-axis.}
-
-\item{label.align}{numeric. Specification between 0 and 1 for the alignment of labels
-relative to the plot width or \code{xlim.max}.}
 }
 \value{
 The \code{print()} method returns the printed object invisibly.
 The \code{coef()} method returns the vector (for a single node) or matrix (for multiple nodes) of estimated parameters (bias and standard deviation).
 The \code{plot()} method returns \code{NULL}.
 The \code{node_baplot()} panel-generating function returns a function that can be plugged into the \code{plot()} method.
-The \code{autoplot()} method returns a \code{ggplot} object.
 }
 \description{
 Extracting information from or visualization of conditional method agreement trees.
-Visualizations use trees with Bland-Altman plots in terminal nodes, drawn either
-via grid graphics directly or via ggplot2.
+Visualizations use trees with Bland-Altman plots in terminal nodes, drawn
+via grid graphics.
 }
 \details{
 Various methods are provided for trees fitted by \code{\link[coat]{coat}},
-in particular \code{print}, \code{plot} (via \pkg{grid}/\pkg{partykit}),
-\code{autoplot} (via \pkg{ggplot2}/\pkg{ggparty}),
+in particular \code{print}, \code{plot} (via \pkg{grid}/\pkg{partykit}) and
 \code{coef}. The \code{plot} method draws Bland-Altman plots in the terminal panels by default,
-using the function \code{node_baplot}. The \code{autoplot} draws very similar plots by
-customizing the \code{\link[ggparty]{geom_node_plot}} "from scratch".
+using the function \code{node_baplot}.
 
 In addition to these dedicated \code{coat} methods, further methods are inherited
 from \code{\link[partykit]{ctree}} or \code{\link[partykit]{mob}}, respectively,
@@ -167,9 +149,4 @@ plot(tr)
 plot(tr, ip_args = list(id = FALSE),
   tp_args = list(col = "slategray", id = FALSE, digits = 3, pch = 19))
 
-## visualization (via ggplot2 with ggparty)
-library("ggplot2")
-autoplot(tr)
-autoplot(tr, digits = 3) + ggtitle("Conditional method agreement tree") +
-  theme(plot.title = element_text(hjust = 0.5))
 }

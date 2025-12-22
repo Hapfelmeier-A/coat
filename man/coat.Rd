@@ -129,8 +129,8 @@ plot(tr1, tp_args = list(
 ))
 }
 \references{
-Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2023).
-\dQuote{Tree Models for Assessing Covariate-Dependent Method Agreement.}
-arXiv 2306.04456, \emph{arXiv.org E-Print Archive}.
-\doi{10.48550/arXiv.2306.04456}
+Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2025).
+\dQuote{Tree models for assessing covariate-dependent method agreement with an application to physical activity measurements.}
+Journal of the Royal Statistical Society Series C: Applied Statistics, Volume 74, Issue 3, June 2025, Pages 775–799.
+\doi{10.1093/jrsssc/qlae077}
 }

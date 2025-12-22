@@ -1,3 +1,11 @@
+# Version 0.2.2
+
+* Citation info was updated.
+
+# Version 0.2.1
+
+* Dependency on package `ggparty` was removed due to maintenance issues. Visualization via `ggplot2()` is therefore not avialable any more. Plotting is still possible, however.
+  
 # Version 0.2.0
 
 * First CRAN release of the package, accompanying the publication of a working
