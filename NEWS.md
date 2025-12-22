@@ -1,3 +1,8 @@
+# Version 0.3.0
+
+* The package now also handles repeated/replicated (paired or unpaired) measurements per subject/item.
+* An error has been corrected in `print.baplot` which caused the root of the standard deviation to be calculated and output as the standard deviation itself. 
+
 # Version 0.2.2
 
 * Citation info was updated.
@@ -23,3 +28,4 @@
   [partykit](https://CRAN.R-project.org/package=partykit) for the tree-based
   modeling in combination with the well-established Bland-Altman analysis for
   method agreement.
+
