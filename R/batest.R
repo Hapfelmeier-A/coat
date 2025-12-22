@@ -80,7 +80,6 @@ batest <- function(formula, data, subset, na.action, weights, ...)
   test[2, c(3, 5)] <- partykit::sctest.constparty(rval.var, node = 1L)
   test[3, c(3, 5)] <- partykit::sctest.constparty(rval, node = 1L)
   test[1:2, 1:2] <- t(coef.coat(rval))
-  test[2, 1:2] <- sqrt(test[2, 1:2])
   test[, 4] <- c(1, 1, 2)
 
   ## unify output
@@ -120,3 +119,4 @@ print.batest <- function(x, digits = 2, type = c("test", "model", "both"), ...) 
 plot.batest <- function(x, ...) {
   plot(x$model, ...)
 }
+
