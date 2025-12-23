@@ -94,42 +94,19 @@ print.coat <- function(x, digits = 2L,
   header_panel <- if(header) function(party) {
     c(title, "", "Model formula:", deparse(party$info$call$formula), "", "Fitted party:", "")
   } else function(party) ""
-  
+
   footer_panel <- if(footer) function(party) {
     n <- width(party)
     n <- format(c(length(party) - n, n))
     c("", paste("Number of inner nodes:   ", n[1L]),
       paste("Number of terminal nodes:", n[2L]), "")
   } else function (party) ""
-  
-  node_labs <- nodeapply(x, nodeids(x), function(node) {
-    y <- node$fitted[["(response)"]]
-    w <- node$fitted[["(weights)"]]
-    if (is.null(w)) w <- rep.int(1, NROW(y))
-    m <- weighted.mean(y, w)
-    s <- sqrt(weighted.mean((y - m)^2, w) * sum(w)/(sum(w) - 1))
-    if(!is.na(class(x)[4])) {
-      data <- node$data
-      n <- nrow(data)
-      if(class(x)[4] == "paired") {
-        nr <- data$nr
-        m <- weighted.mean(y, nr)
-        tau <- sum((y - weighted.mean(y, nr))^2 * nr * (n/(n - 1))) / n
-        sigma <- sum(data$rss / (mean(nr) - 1)) / n
-        overallvar <- (tau - sigma) / ((sum(nr)^2 - sum(nr^2)) / ((n - 1) * sum(nr))) + sigma
-      } else {
-        nr1 <- data$nr1
-        nr2 <- data$nr2
-        tau <- sum((y - mean(y))^2 * (n/(n - 1))) / n
-        s1 <- sum(data$rss1/(mean(nr1) - 1)) / n
-        s2 <- sum(data$rss2/(mean(nr2) - 1)) / n
-        overallvar <- tau + (1 - (1/n) * sum(1/nr1)) * s1 + (1 - (1/n) * sum(1/nr2)) * s2
-      }
-      s <- sqrt(overallvar)
-    }
-    paste(c("Bias =", "SD ="), format(round(c(m, s), digits = digits), nsmall = digits), collapse = ", ")
-  }, by_node = FALSE)
-  
+
+  node_labs <- lapply(nodeids(x), function(nodes) {
+    coefs <- coef(x, node = nodes)
+    paste(c("Bias =", "SD ="), format(round(c(coefs[1], coefs[2]), digits = digits), nsmall = digits), collapse = ", ")
+  })
+
   terminal_panel <- function(node) paste(":", node_labs[[id_node(node)]])
   print.party(x, terminal_panel = terminal_panel, header_panel = header_panel, footer_panel = footer_panel, ...)
   invisible(x)
@@ -143,7 +120,7 @@ print.coat <- function(x, digits = 2L,
 #' @importFrom partykit data_party nodeapply nodeids
 coef.coat <- function(object, node = NULL, drop = TRUE, ...) {
   if (is.null(node)) node <- nodeids(object, terminal = TRUE)
-  
+
   cf <- if (inherits(object, "modelparty")) {
     nodeapply(object, ids = node, FUN = function(n) info_node(n)$coefficients)
   } else {
@@ -178,7 +155,7 @@ coef.coat <- function(object, node = NULL, drop = TRUE, ...) {
       mv
     })
   }
-  
+
   names(cf) <- node
   cf <- do.call(rbind, cf)
   if (drop) drop(cf) else cf
@@ -219,114 +196,114 @@ node_baplot <- function(obj,
                         mainlab = NULL,
                         gp = gpar())
 {
-    ## means and differences
-    y <- obj$fitted[["(response)"]]
-    x <- obj$data[["_means_"]]
-    stopifnot(is.numeric(x), is.numeric(y))
+  ## means and differences
+  y <- obj$data[[intersect(c("_mean_diff_", "_diff_"), names(obj$data))]]
+  x <- obj$data[["_means_"]]
+  stopifnot(is.numeric(x), is.numeric(y))
 
-    ## ## limits of agreement
-    cf <- coef(obj, drop = FALSE)
-    loa <- cbind(cf[, 1L] - qnorm((1 - level)/2) * cf[, 2L], cf[, 1L] + qnorm((1 - level)/2) * cf[, 2L])
+  ## ## limits of agreement
+  cf <- coef(obj, drop = FALSE)
+  loa <- cbind(cf[, 1L] - qnorm((1 - level)/2) * cf[, 2L], cf[, 1L] + qnorm((1 - level)/2) * cf[, 2L])
 
-    if (is.null(xscale)) xscale <- range(x) + c(-0.1, 0.1) * diff(range(x))
-    if (is.null(yscale)) yscale <- range(c(y, loa)) + c(-0.1, 0.1) * diff(range(c(y, loa)))
+  if (is.null(xscale)) xscale <- range(x) + c(-0.1, 0.1) * diff(range(x))
+  if (is.null(yscale)) yscale <- range(c(y, loa)) + c(-0.1, 0.1) * diff(range(c(y, loa)))
 
-    ### panel function for Bland-Altman plots in nodes
-    rval <- function(node) {
+  ### panel function for Bland-Altman plots in nodes
+  rval <- function(node) {
 
     ## extract data
     nid <- id_node(node)
     dat <- data_party(obj, nid)
     n <- nrow(dat)
-    yn <- dat[["(response)"]]
+    yn <- dat[[intersect(c("_mean_diff_", "_diff_"), names(dat))]]
     xn <- dat[["_means_"]]
-  	wn <- dat[["(weights)"]]
-  	if(is.null(wn)) wn <- rep.int(1, length(yn))
-  	
-  	## extract mean and variance
-  	cf <- info_node(node)$coefficients
-  	if(is.null(cf)) {
-  	  cf <- weighted.mean(yn, wn)
-  	  cf <- c(cf, sqrt(weighted.mean((yn - cf)^2, wn) * sum(wn)/(sum(wn) - 1)))
-  	
-  	  if(!is.na(class(obj)[4])) {
-  	    if(class(obj)[4] == "paired") {
-  	      nr <- dat$nr
-  	      cf <- weighted.mean(yn, nr)
-  	      tau <- sum((yn - weighted.mean(yn, nr))^2 * nr * (n/(n - 1))) / n
-  	      sigma <- sum(dat$rss / (mean(nr) - 1)) / n
-  	      overallvar <- (tau - sigma) / ((sum(nr)^2 - sum(nr^2)) / ((n - 1) * sum(nr))) + sigma
-  	      cf <- c(cf, sqrt(overallvar))
-  	    } else {
-  	      nr1 <- dat$nr1
-  	      nr2 <- dat$nr2
-  	      tau <- sum((yn - mean(yn))^2 * (n/(n - 1))) / n
-  	      s1 <- sum(dat$rss1/(mean(nr1) - 1)) / n
-  	      s2 <- sum(dat$rss2/(mean(nr2) - 1)) / n
-  	      overallvar <- tau + (1 - (1/n) * sum(1/nr1)) * s1 + (1 - (1/n) * sum(1/nr2)) * s2
-  	      cf <- c(cf[1], sqrt(overallvar))
-  	    }
-  	  }
-  	}
-  	
-  	## grid
-  	top_vp <- viewport(layout = grid.layout(nrow = 2, ncol = 3,
-  	                                        widths = unit(c(ylines, 1, 1), c("lines", "null", "lines")),
-  	                                        heights = unit(c(1, 1), c("lines", "null"))),
-  	                   width = unit(1, "npc"),
-  	                   height = unit(1, "npc") - unit(2, "lines"),
-  	                   name = paste("node_baplot", nid, sep = ""),
-  	                   gp = gp)
-  	pushViewport(top_vp)
-  	grid.rect(gp = gpar(fill = bg, col = 0))
-  	
-  	## main title
-  	top <- viewport(layout.pos.col=2, layout.pos.row=1)
-  	pushViewport(top)
-  	if (is.null(mainlab)) {
-  	  mainlab <- if(id) {
-  	    function(id, nobs) sprintf("Node %s (n = %s)", id, nobs)
-  	    } else {
-  	      function(id, nobs) sprintf("n = %s", nobs)
-  	    }
-  	}
-  	if (is.function(mainlab)) {
-  	  mainlab <- mainlab(names(obj)[nid], sum(wn))
-  	}
-  	grid.text(mainlab)
-  	popViewport()
-  	
-  	plot <- viewport(layout.pos.col = 2, layout.pos.row = 2,
-  	                 xscale = xscale, yscale = yscale,
-  	                 name = paste0("node_baplot", nid, "plot"),
-  	                 clip = FALSE)
-  	pushViewport(plot)
-  	
-  	## confidence intervals
-  	if (confint) {
-  	  loa_boot <- sapply(1:B, function(z) {
-  	    boot_index <- sample(1:length(yn), length(yn), replace = TRUE)	  
-  	    wn_boot <- weighted.mean(yn[boot_index], wn[boot_index]) 
-  	    sd_boot <- sqrt(weighted.mean((yn[boot_index] - wn_boot)^2, wn[boot_index]) * sum(wn[boot_index])/(sum(wn[boot_index]) - 1))
-  	    
-  	    wn_boot + c(1, 0, -1) * qnorm((1 - level)/2) * sd_boot
-  	    })
-  	  
-  	  stats_boot <- apply(loa_boot, 1, function(z) quantile(z, probs = 0:1 + c(1, -1) * (1-cilevel)/2))
-  	  
-  	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 1L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
-  	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 2L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
-  	  grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 3L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
-  	}	
-  	
-  	## box and axes
-  	grid.xaxis()
-  	grid.yaxis()
+    wn <- dat[["(weights)"]]
+    if(is.null(wn)) wn <- rep.int(1, length(yn))
+
+    ## extract mean and variance
+    cf <- info_node(node)$coefficients
+    if(is.null(cf)) {
+      cf <- weighted.mean(yn, wn)
+      cf <- c(cf, sqrt(weighted.mean((yn - cf)^2, wn) * sum(wn)/(sum(wn) - 1)))
+
+      if(!is.na(class(obj)[4])) {
+        if(class(obj)[4] == "paired") {
+          nr <- dat$nr
+          cf <- weighted.mean(yn, nr)
+          tau <- sum((yn - weighted.mean(yn, nr))^2 * nr * (n/(n - 1))) / n
+          sigma <- sum(dat$rss / (mean(nr) - 1)) / n
+          overallvar <- (tau - sigma) / ((sum(nr)^2 - sum(nr^2)) / ((n - 1) * sum(nr))) + sigma
+          cf <- c(cf, sqrt(overallvar))
+        } else {
+          nr1 <- dat$nr1
+          nr2 <- dat$nr2
+          tau <- sum((yn - mean(yn))^2 * (n/(n - 1))) / n
+          s1 <- sum(dat$rss1/(mean(nr1) - 1)) / n
+          s2 <- sum(dat$rss2/(mean(nr2) - 1)) / n
+          overallvar <- tau + (1 - (1/n) * sum(1/nr1)) * s1 + (1 - (1/n) * sum(1/nr2)) * s2
+          cf <- c(cf[1], sqrt(overallvar))
+        }
+      }
+    }
+
+    ## grid
+    top_vp <- viewport(layout = grid.layout(nrow = 2, ncol = 3,
+                                            widths = unit(c(ylines, 1, 1), c("lines", "null", "lines")),
+                                            heights = unit(c(1, 1), c("lines", "null"))),
+                       width = unit(1, "npc"),
+                       height = unit(1, "npc") - unit(2, "lines"),
+                       name = paste("node_baplot", nid, sep = ""),
+                       gp = gp)
+    pushViewport(top_vp)
+    grid.rect(gp = gpar(fill = bg, col = 0))
+
+    ## main title
+    top <- viewport(layout.pos.col=2, layout.pos.row=1)
+    pushViewport(top)
+    if (is.null(mainlab)) {
+      mainlab <- if(id) {
+        function(id, nobs) sprintf("Node %s (n = %s)", id, nobs)
+      } else {
+        function(id, nobs) sprintf("n = %s", nobs)
+      }
+    }
+    if (is.function(mainlab)) {
+      mainlab <- mainlab(names(obj)[nid], sum(wn))
+    }
+    grid.text(mainlab)
+    popViewport()
+
+    plot <- viewport(layout.pos.col = 2, layout.pos.row = 2,
+                     xscale = xscale, yscale = yscale,
+                     name = paste0("node_baplot", nid, "plot"),
+                     clip = FALSE)
+    pushViewport(plot)
+
+    ## confidence intervals
+    if (confint) {
+      loa_boot <- sapply(1:B, function(z) {
+        boot_index <- sample(1:length(yn), length(yn), replace = TRUE)
+        wn_boot <- weighted.mean(yn[boot_index], wn[boot_index])
+        sd_boot <- sqrt(weighted.mean((yn[boot_index] - wn_boot)^2, wn[boot_index]) * sum(wn[boot_index])/(sum(wn[boot_index]) - 1))
+
+        wn_boot + c(1, 0, -1) * qnorm((1 - level)/2) * sd_boot
+      })
+
+      stats_boot <- apply(loa_boot, 1, function(z) quantile(z, probs = 0:1 + c(1, -1) * (1-cilevel)/2))
+
+      grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 1L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
+      grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 2L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
+      grid.polygon(unit(c(0, 1, 1, 0), "npc"), unit(rep(stats_boot[, 3L], each = 2L), "native"), gp = gpar(col = cicol, fill = cicol))
+    }
+
+    ## box and axes
+    grid.xaxis()
+    grid.yaxis()
     grid.rect(gp = gpar(fill = "transparent"))
-	  grid.clip()
-	  
-	  ## scatterplot
-	  grid.points(unit(xn, "native"), unit(yn, "native"), size = unit(cex, "char"), pch = pch, gp = gpar(col = col))
+    grid.clip()
+
+    ## scatterplot
+    grid.points(unit(xn, "native"), unit(yn, "native"), size = unit(cex, "char"), pch = pch, gp = gpar(col = col))
 
     ## limits of agreement
     loa <- cf[1L] + c(1, 0, -1) * qnorm((1 - level)/2) * cf[2L]
@@ -351,9 +328,9 @@ node_baplot <- function(obj,
                   gp = gpar(col = linecol))
       }
     }
-        upViewport(2)
-    }
-    
-    return(rval)
+    upViewport(2)
+  }
+
+  return(rval)
 }
 class(node_baplot) <- "grapcon_generator"

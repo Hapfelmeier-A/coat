@@ -72,17 +72,25 @@
 #'     stop("the MethComp package is required for this example but is not installed")
 #'   } else q() }
 #' }
+#' ### single measurements per item
+#'
 #' ## package and data
 #' library("coat")
 #' data("scint", package = "MethComp")
 #'
-#' ## coat based on ctree() without and with mean values of paired measurements as predictor
-#' tr1 <- coat(y ~ age + sex, data = scint)
+#' ## coat based on ctree()
+#' tr1 <- coat(y ~ age + sex, data = scint, id = "item", meth = "meth")
+#'
+#' ## coat based on mob() including mean values of paired measurements as predictor
+#' tr2 <- coat(y ~ age + sex, data = scint, id = "item", meth = "meth", means = TRUE, type = "mob")
 #'
 #' ## display
 #' print(tr1)
 #' plot(tr1)
-#' 
+#'
+#' print(tr2)
+#' plot(tr2)
+#'
 #' ## tweak various graphical arguments of the panel function (just for illustration):
 #' ## different colors, nonparametric bootstrap percentile confidence intervals, ...
 #' plot(tr1, tp_args = list(
@@ -96,26 +104,42 @@
 #' @importFrom partykit ctree_control mob_control
 #'
 #' @export
+coat <- function(formula, data, id = NULL, meth = NULL, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
+                 replicates = FALSE, paired = FALSE, minsize = 10L, alpha = 0.05, minbucket = minsize, minsplit = NULL, ...){
+  cl <- match.call()
+
+  if(replicates & (is.null(id) | is.null(meth))) stop("arguments id or meth are missing")
+
+  data <- coat.reshape(formula, data, id = id, meth = meth, replicates = replicates, paired = paired)
+  fit <- coat.fit(formula, data, replicates = replicates, paired = paired, type = type, means = means, na.action = na.action,
+                  minsize = minsize, minsplit = minsplit, alpha = alpha, ...)
+
+  fit$info$call <- cl
+  return(fit)
+}
+
+#' @describeIn coat fitter function for tree models.
+#' @export
 coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
                      replicates = FALSE, paired = FALSE, minsize = 10L, alpha = 0.05, minbucket = minsize, minsplit = NULL, ...){
-  
+
   ## set replicates with paired measurements
   if(paired) replicates <- TRUE
-  
+
   ## type of tree
   type <- match.arg(tolower(type), c("ctree", "mob"))
   if (replicates & type != "ctree") {
     type <- "ctree"
     warning("'type' was set to 'ctree' with replicate measurements")
   }
-  
+
   ## keep call
   cl <- match.call(expand.dots = TRUE)
-  
+
   ## preparation of ctree/mob call
   m <- match.call(expand.dots = FALSE)
   if(missing(na.action)) m$na.action <- na.omit
-  
+
   ## update formula
   if (replicates) {
     if (!paired) {
@@ -127,17 +151,11 @@ coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, t
     formula <- as.formula(paste("`_diff_` ~ id + `_means_`|", formula[3], ifelse(means, "+ `_means_`", "")))
   }
   m$formula <- formula
-  
-  # ## if desired "means(y1, y2)" is added as split variable
-  # if(means) {
-  #  formula <- update(formula, . ~ . + `_means_`)
-  #  m$formula <- formula
-  # }
-  
+
   ## update/remove processed arguments
   m$means <- NULL
   m$type <- NULL
-  
+
   ## process hyperparameters
   if(!missing(minsize) && !missing(minbucket)) {
     warning("the minimal subgroup size should either be specified by 'minsize' or 'minbucket' but not both, using 'minsize'")
@@ -149,7 +167,7 @@ coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, t
     warning("the minimal sample size to consider splitting ('minsplit') must be at least twice the minimal subgroup size ('minsize'), increased accordingly")
     minsplit <- 2L * minsize
   }
-  
+
   ## add trafo function for ctree
   m[[1L]] <- as.call(quote(partykit::ctree))
   if(replicates) {
@@ -157,15 +175,15 @@ coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, t
     } else m$ytrafo <- batrafo.repl.unpair
   }  else m$ytrafo <- batrafo
   m$control <- partykit::ctree_control(minbucket = minsize, minsplit = minsplit, alpha = alpha, ...)
-  
+
   ## add fit function for mob
   if(type == "mob") {
     m[[1L]] <- as.call(quote(partykit::mob))
-    m$fit <- bafit
+    m$fit <- gaussfit
     m$control <- partykit::mob_control(minsize = minsize, minsplit = minsplit, alpha = alpha, ...)
     m$control$ytype <- "matrix"
   }
-  
+
   ## fit tree
   rval <- eval(m, parent.frame())
 
@@ -177,26 +195,13 @@ coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, t
   ## unify output
   rval$info$call <- cl
   class(rval) <- c("coat", class(rval))
-  
+
   # for the further functions we add an additional class paired/unpaired
   if(replicates) {
     if(paired) {class(rval) <- c(class(rval), "paired")
     } else class(rval) <- c(class(rval), "unpaired")
   }
-  
+
   return(rval)
 }
 
-coat <- function(formula, data, id = NULL, meth = NULL, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
-                 replicates = FALSE, paired = FALSE, minsize = 10L, alpha = 0.05, minbucket = minsize, minsplit = NULL, ...){
-  cl <- match.call()
-  
-  if(replicates & (is.null(id) | is.null(meth))) stop("arguments id or meth are missing")
-  
-  data <- coat.reshape(formula, data, id = id, meth = meth, replicates = replicates, paired = paired)
-  fit <- coat.fit(formula, data, replicates = replicates, paired = paired, type = type, means = means, na.action = na.action,
-                  minsize = minsize, minsplit = minsplit, alpha = alpha, ...)
-  
-  fit$info$call <- cl
-  return(fit)
-}

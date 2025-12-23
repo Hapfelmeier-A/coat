@@ -41,7 +41,6 @@ means <- function(y1, y2) {
   return((y1 + y2)/2)
 }
 
-
 #' Transformation function used in \code{\link[partykit]{ctree}} to model the mean and variance as bivariate outcome. See \code{ytrafo} in \code{\link[partykit]{ctree}} for details.
 #' @noRd
 meanvar <- function(data, weights, control, ...) {
@@ -65,7 +64,7 @@ meanvar <- function(data, weights, control, ...) {
 gaussfit <- function(y, x = NULL, start = NULL, weights = NULL,
                      offset = NULL, ..., estfun = FALSE, object = FALSE)
 {
-  if(is.null(x)) x <- cbind("(Intercept)" = rep.int(1, length(y)))
+  x <- cbind("(Intercept)" = rep.int(1, length(y)))
   m <- lm.fit(x, y)
   b <- m$coefficients
   s2 <- mean(m$residuals^2)
@@ -78,7 +77,6 @@ gaussfit <- function(y, x = NULL, start = NULL, weights = NULL,
     object = if(object) lm(y ~ 0 + x) else NULL
   )
 }
-
 
 #' Transformation function used in \code{\link[partykit]{ctree}} to transform a bivariate measurement pair to mean and variance of the differences. See \code{ytrafo} in \code{\link[partykit]{ctree}} for details.
 #' @noRd
@@ -109,24 +107,6 @@ batrafo.var <- function(data, weights, control, ...) {
   function(subset, weights, info, estfun, object, ...) {
     list(estfun = variance, unweighted = TRUE)
   }
-}
-
-#' \code{fit} function used in \code{\link[partykit]{mob}} for modeling the differences of a bivariate measurement pair by an intercept-only linear regression model with residual variance as additional parameter. See \code{fit} in \code{\link[partykit]{mob}} for details.
-#' @noRd
-bafit <- function(y, x = NULL, start = NULL, weights = NULL, offset = NULL, ..., estfun = FALSE, object = FALSE)
-{
-  if(is.null(x)) x <- cbind("(Intercept)" = rep.int(1, length(y)))
-  m <- lm.fit(x, y)
-  b <- m$coefficients
-  s2 <- mean(m$residuals^2)
-  s2ols <- var(m$residuals) ## n * s2 = (n-1) * s2ols
-  list(
-    coefficients = c("Bias" = as.numeric(b), "SD" = sqrt(s2ols)), ## parameter estimates employed for Bland-Altman analysis
-    mobcoefficients = c(b, "(Variance)" = s2), ## parameter estimates underlying the mob() inference
-    objfun = -sum(dnorm(y, mean = m$fitted.values, sd = sqrt(s2), log = TRUE)),
-    estfun = if(estfun) cbind(m$residuals/s2 * x, "(Variance)" = (m$residuals^2 - s2)/(2 * s2^2)) else NULL,
-    object = if(object) lm(y ~ 0 + x) else NULL
-  )
 }
 
 #'Transformation function for unpaired measurements
@@ -171,26 +151,26 @@ coat.reshape <- function(formula, data, id = NULL, meth = NULL, replicates = FAL
                                data[!duplicated(data[, id]), x, drop = FALSE],
                                do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) length(na.omit(z2)))))),
                                do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) sum(aov(z2 ~ 1)$residuals^2)))))
-      ))
+                               ))
       names(data) <- c("id", "_mean_diff_", "_means_", x, "nr1", "nr2", "rss1", "rss2")
-    } else {
-      data <- data.frame(cbind(unique(data[, id]),
-                               c(by(data[, c(y, meth)], data[, id], function(z) mean(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff)))),
-                               c(by(data[, y], data[, id], mean)),
-                               data[!duplicated(data[, id]), x, drop = FALSE],
-                               as.numeric(table(data[, id]) / 2),
-                               c(by(data[, c(y, meth)], data[, id], function(z) sum(aov(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff) ~ 1)$residuals^2)))
-      ))
-      names(data) <- c("id", "_mean_diff_", "_means_", x, "nr", "rss")
+      } else {
+        data <- data.frame(cbind(unique(data[, id]),
+                                 c(by(data[, c(y, meth)], data[, id], function(z) mean(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff)))),
+                                 c(by(data[, y], data[, id], mean)),
+                                 data[!duplicated(data[, id]), x, drop = FALSE],
+                                 as.numeric(table(data[, id]) / 2),
+                                 c(by(data[, c(y, meth)], data[, id], function(z) sum(aov(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff) ~ 1)$residuals^2)))
+                                 ))
+        names(data) <- c("id", "_mean_diff_", "_means_", x, "nr", "rss")
+      }
     }
-  }
   else {
     data <- data.frame(cbind(unique(data[, id]),
                              c(by(data[, y], data[, id], diff, na.rm = TRUE)),
                              c(by(data[, y], data[, id], mean, na.rm = TRUE)),
                              data[!duplicated(data[, id]), x, drop = FALSE]
-    ))
+                             ))
     names(data) <- c("id", "_diff_", "_means_", x)
-  }
+    }
   return(data)
-}
+  }
