@@ -129,10 +129,9 @@ depending on which \code{type} of \code{coat} was fitted.
 ## package and data (reshaped to wide format)
 library("coat")
 data("scint", package = "MethComp")
-scint_wide <- reshape(scint, v.names = "y", timevar = "meth", idvar = "item", direction = "wide")
 
 ## conditional method agreement tree
-tr <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide)
+tr <- coat(y ~ age + sex, data = scint)
 
 ## illustration of methods (including some customization)
 

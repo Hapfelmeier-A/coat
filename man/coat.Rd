@@ -2,9 +2,29 @@
 % Please edit documentation in R/coat.R
 \name{coat}
 \alias{coat}
+\alias{coat.fit}
 \title{Conditional Method Agreement Trees (COAT)}
 \usage{
 coat(
+  formula,
+  data,
+  id = NULL,
+  meth = NULL,
+  subset,
+  na.action,
+  weights,
+  means = FALSE,
+  type = c("ctree", "mob"),
+  replicates = FALSE,
+  paired = FALSE,
+  minsize = 10L,
+  alpha = 0.05,
+  minbucket = minsize,
+  minsplit = NULL,
+  ...
+)
+
+coat.fit(
   formula,
   data,
   subset,
@@ -12,15 +32,18 @@ coat(
   weights,
   means = FALSE,
   type = c("ctree", "mob"),
+  replicates = FALSE,
+  paired = FALSE,
   minsize = 10L,
+  alpha = 0.05,
   minbucket = minsize,
   minsplit = NULL,
   ...
 )
 }
 \arguments{
-\item{formula}{symbolic description of the model of type \code{y1 + y2 ~ x1 + ... + xk}.
-The left-hand side should specify a pair of measurements (\code{y1} and \code{y2}) for the Bland-Altman analysis.
+\item{formula}{symbolic description of the model of type \code{y ~ x1 + ... + xk}.
+The left-hand side should specify the measurements (\code{y}) for the Bland-Altman analysis.
 The right-hand side can specify any number of potential split variables for the tree.}
 
 \item{data, subset, na.action}{arguments controlling the formula processing
@@ -81,38 +104,40 @@ can be specified through the \code{...} argument, see
 \code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}},
 respectively, for details.
 
-In addition to the standard specification of the two response measurements in the
-formula via \code{y1 + y2 ~ ...}, it is also possible to use \code{y1 - y2 ~ ...}.
-The latter may be more intuitive for users that think of it as a model for the
-difference of two measurements. Finally \code{cbind(y1, y2) ~ ...} also works.
-Internally, all of these are processed in the same way, namely as a bivariate
-dependent variable that can then be modeled and plotted appropriately.
 
 To add the means of the measurement pair as a potential splitting variable,
 there are also different equivalent strategies. The standard specification would
-be via the \code{means} argument: \code{y1 + y2 ~ x1 + ..., means = TRUE}.
+be via the \code{means} argument: \code{y ~ x1 + ..., means = TRUE}.
 Alternatively, the user can also extend the formula argument via
-\code{y1 + y2 ~ x1 + ... + means(y1, y2)}.
+\code{y ~ x1 + ... + means(y1, y2)}.
 
 The SD is estimated by the usual sample standard deviation in each subgroup,
 i.e., divided by the sample size \eqn{n - 1}. Note that the inference in the
 MOB algorithm internally uses the maximum likelihood estimate (divided by \eqn{n})
 instead so the the fluctuation tests for parameter instability can be applied.
 }
+\section{Functions}{
+\itemize{
+\item \code{coat.fit()}: fitter function for tree models.
+
+}}
 \examples{
 \dontshow{ if(!requireNamespace("MethComp")) {
   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
     stop("the MethComp package is required for this example but is not installed")
   } else q() }
 }
-## package and data (reshaped to wide format)
+### single measurements per item
+
+## package and data
 library("coat")
 data("scint", package = "MethComp")
-scint_wide <- reshape(scint, v.names = "y", timevar = "meth", idvar = "item", direction = "wide")
 
-## coat based on ctree() without and with mean values of paired measurements as predictor
-tr1 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide)
-tr2 <- coat(y.DTPA + y.DMSA ~ age + sex, data = scint_wide, means = TRUE)
+## coat based on ctree()
+tr1 <- coat(y ~ age + sex, data = scint, id = "item", meth = "meth")
+
+## coat based on mob() including mean values of paired measurements as predictor
+tr2 <- coat(y ~ age + sex, data = scint, id = "item", meth = "meth", means = TRUE, type = "mob")
 
 ## display
 print(tr1)
