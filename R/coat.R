@@ -1,7 +1,7 @@
 #' Conditional Method Agreement Trees (COAT)
 #'
 #' Tree models capturing the dependence of method agreement on covariates.
-#' The classic Bland-Altman analysis for single or replicate measurements
+#' The Bland-Altman analysis for single or replicate measurements per subject (or item)
 #' is used to model method agreement, while the covariate dependency can
 #' be learned either nonparametrically via conditional inference trees (CTree)
 #' or using model-based recursive partitioning (MOB).
@@ -18,9 +18,9 @@
 #' @param weights optional numeric vector of weights (case/frequency weights, by default).
 #' @param means logical. Should the intra-individual mean values of measurements
 #' be included as potential split variable?
-#' @param type character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.
 #' @param replicates Does \code{data} contain replicate measurements?
 #' @param paired Are replicate measurements paired (TRUE) or unpaired (FALSE)?
+#' @param type character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.
 #' @param minsize,minbucket integer. The minimum number of observations in a subgroup.
 #' Only one of the two arguments should be used (see also below).
 #' @param minsplit integer. The minimum number of observations to consider splitting.
@@ -45,7 +45,7 @@
 #' MOB algorithm internally uses the maximum likelihood estimate (divided by \eqn{n})
 #' instead so the the fluctuation tests for parameter instability can be applied.
 #'
-#' An extension of the classic Bland-Altman analysis addresses the frequent
+#' An extension of the Bland-Altman analysis addresses the frequent
 #' cases of paired and unpaired replicate measurements per subject or item.
 #' Both cases are analysed in COAT using CTree with appropriate data aggregation
 #' to model Bias and SD at the subject/item level, with the latter being
@@ -95,12 +95,13 @@
 #' ## package and data
 #' library("coat")
 #' data("scint", package = "MethComp")
+#' scint$DMSA <- factor(scint$meth == "DMSA")
 #'
 #' ## coat based on ctree()
-#' tr1 <- coat(y ~ age + sex, data = scint, id = "item", meth = "meth")
+#' tr1 <- coat(y ~ age + sex, data = scint, id = "item", meth = "DMSA")
 #'
 #' ## coat based on mob() including mean values of paired measurements as predictor
-#' tr2 <- coat(y ~ age + sex, data = scint, id = "item", meth = "meth", means = TRUE, type = "mob")
+#' tr2 <- coat(y ~ age + sex, data = scint, id = "item", meth = "DMSA", means = TRUE, type = "mob")
 #'
 #' ## display
 #' print(tr1)
@@ -142,8 +143,9 @@
 #' @importFrom partykit ctree_control mob_control
 #'
 #' @export
-coat <- function(formula, data, id = NULL, meth = NULL, subset, na.action, weights, means = FALSE, type = c("ctree", "mob"),
-                 replicates = FALSE, paired = FALSE, minsize = 10L, alpha = 0.05, minbucket = minsize, minsplit = NULL, ...){
+coat <- function(formula, data, id = NULL, meth = NULL, subset, na.action, weights, means = FALSE,
+                 replicates = FALSE, paired = FALSE, type = c("ctree", "mob"), minsize = 10L,
+                 alpha = 0.05, minbucket = minsize, minsplit = NULL, ...){
   cl <- match.call()
 
   if(is.null(id) | is.null(meth)) stop("arguments 'id' and 'meth' must be specified")

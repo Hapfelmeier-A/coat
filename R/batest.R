@@ -1,17 +1,26 @@
 #' Bland-Altman Test of Method Agreement
 #'
-#' Function to perform a Bland-Altman test of differences in method agreement. Additional functions are given for printing and plotting.
+#' Function to perform a Bland-Altman test of differences in method agreement
+#' with single measurements per subject (or item). Additional functions are
+#' given for printing and plotting. The function \code{\link[coat]{coat}} must
+#' be used in case of replicate measurements, setting the arguments
+#' \code{alpha = 1} and \code{maxdepth = 1L}.
 #'
-#' @param formula symbolic description of the model used to perform the Bland-Altman test of type \code{y1 + y2 ~ x}.
-#' The left-hand side should specify a pair of measurements (\code{y1} and \code{y2}) to assess the agreement.
+#' @param formula symbolic description of the model used to perform the Bland-Altman test of type \code{y ~ x}.
+#' The left-hand side should specify the measurements (\code{y}) to assess the agreement.
 #' The right-hand side should specify a factor with two levels indicating two independent groups or samples to be compared. Alternatively, multilevel factors or continuously scaled variables can be specified to perform a Bland-Altman test of association, followed by binary splitting into two subgroups.
 #' @param data,subset,na.action arguments controlling the formula processing
-#' via \code{\link[stats]{model.frame}}.
+#' via \code{\link[stats]{model.frame}}. \code{data} must be provided in long format,
+#' i.e. with two rows per subject (or item), one for each of the measurements made with the compared methods.
 #' @param weights optional numeric vector of weights (case/frequency weights, by default).
 #' @param x an object as returned by \code{\link[coat]{batest}}.
 #' @param digits a numeric specifying the number of digits to display.
 #' @param type character string specifying whether \code{"test"} statistics (default), the \code{"model"} or \code{"both"} should be printed.
 #' @param ... further control arguments, passed to \code{\link[partykit]{ctree_control}}
+#'
+#' @details The minimum number of subjects (or items) in each of the two groups
+#' or samples that are passed to \code{batest} or defined by it must be three.
+#'
 #'
 #' @references Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2025).
 #' \dQuote{Tree models for assessing covariate-dependent method agreement with an application to physical activity measurements.}
@@ -24,12 +33,13 @@
 #'     stop("the MethComp package is required for this example but is not installed")
 #'   } else q() }
 #' }
-#' ## package and data (reshaped to wide format)
+#' ## package and data
 #' library("coat")
-#' data("VitCap", package = "MethComp")
+#' data("scint", package = "MethComp")
+#' scint$DMSA <- factor(scint$meth == "DMSA")
 #'
 #' ## two-sample BA-test
-#' testresult <- batest(y ~ user, data = VitCap, id = "item", meth = "instrument")
+#' testresult <- batest(y ~ sex, data = scint, id = "item", meth = "DMSA")
 #'
 #' ## display
 #' testresult
@@ -43,45 +53,47 @@
 #' @importFrom partykit character_split sctest.constparty
 #'
 #' @export
-batest <- function(formula, data, subset, na.action, weights, ...)
+batest <- function(formula, data, id = NULL, meth = NULL, subset, na.action, weights, ...)
 {
-  ## keep call
-  cl <- match.call(expand.dots = TRUE)
-
-  # check whether a single covariate is used.
+  ## check whether a single covariate is used.
   if (length(formula[[3]]) > 1) {
     stop("Please provide a single variable on the right-hand side of the formula. Otherwise, consider using the coat() function.")
   }
 
   ## preparation of ctree call
-  m <- m.bias <- m.var <- match.call(expand.dots = FALSE)
-  if(missing(na.action)) m$na.action <- m.bias$na.action <- m.var$na.action <- na.omit
+  base <- match.call(expand.dots = TRUE)
+  base[[1L]] <- quote(partykit::ctree)
+  base$data <- coat.reshape(formula = formula, data = data, id = id, meth = meth, replicates = FALSE, paired = FALSE)
+  base$formula <- update.formula(formula, as.formula("`_diff_` ~ ."))
+  if (missing(na.action)) base$na.action <- na.omit
 
   ## add fit/trafo function
-  m[[1L]] <- m.bias[[1L]] <- m.var[[1L]] <- as.call(quote(partykit::ctree))
+  m <- m.bias <- m.var <- base
   m$ytrafo <- batrafo
   m.bias$ytrafo <- batrafo.mean
   m.var$ytrafo <- batrafo.var
-  m$control <- m.bias$control <- m.var$control <- partykit::ctree_control(alpha = 1, minsplit = 6L, minbucket = 3L, maxdepth = 1L, ...)
+
+  ctrl <- ctree_control(alpha = 1, minsplit = 6L, minbucket = 3L, maxdepth = 1L, ...)
+  m$control <- m.bias$control <- m.var$control <- ctrl
 
   ## fit tree
   rval <- eval(m, parent.frame())
   rval.bias <- eval(m.bias, parent.frame())
   rval.var <- eval(m.var, parent.frame())
 
-  # extract test statistics
+  ## extract test statistics
   test <- matrix(NA, nrow = 3, ncol = 5)
-  colnames(test) <- c(partykit::character_split(rval$node$split, data = rval$data)$levels, "Chisq", "df", "p-value")
+  colnames(test) <- c(character_split(rval$node$split, data = rval$data)$levels, "Chisq", "df", "p-value")
   rownames(test) <- c("Bias", "SD", "Total")
 
-  test[1, c(3, 5)] <- partykit::sctest.constparty(rval.bias, node = 1L)
-  test[2, c(3, 5)] <- partykit::sctest.constparty(rval.var, node = 1L)
-  test[3, c(3, 5)] <- partykit::sctest.constparty(rval, node = 1L)
+  test[1, c(3, 5)] <- sctest.constparty(rval.bias, node = 1L)
+  test[2, c(3, 5)] <- sctest.constparty(rval.var, node = 1L)
+  test[3, c(3, 5)] <- sctest.constparty(rval, node = 1L)
   test[1:2, 1:2] <- t(coef.coat(rval))
   test[, 4] <- c(1, 1, 2)
 
   ## unify output
-  rval$info$call <- cl
+  rval$info$call <- match.call(expand.dots = FALSE)
   class(rval) <- c("coat", class(rval))
   trlist <- list("test" = test, "model" = rval)
   class(trlist) <- "batest"

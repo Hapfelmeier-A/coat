@@ -6,19 +6,20 @@
 \alias{plot.batest}
 \title{Bland-Altman Test of Method Agreement}
 \usage{
-batest(formula, data, subset, na.action, weights, ...)
+batest(formula, data, id = NULL, meth = NULL, subset, na.action, weights, ...)
 
 \method{print}{batest}(x, digits = 2, type = c("test", "model", "both"), ...)
 
 \method{plot}{batest}(x, ...)
 }
 \arguments{
-\item{formula}{symbolic description of the model used to perform the Bland-Altman test of type \code{y1 + y2 ~ x}.
-The left-hand side should specify a pair of measurements (\code{y1} and \code{y2}) to assess the agreement.
+\item{formula}{symbolic description of the model used to perform the Bland-Altman test of type \code{y ~ x}.
+The left-hand side should specify the measurements (\code{y}) to assess the agreement.
 The right-hand side should specify a factor with two levels indicating two independent groups or samples to be compared. Alternatively, multilevel factors or continuously scaled variables can be specified to perform a Bland-Altman test of association, followed by binary splitting into two subgroups.}
 
 \item{data, subset, na.action}{arguments controlling the formula processing
-via \code{\link[stats]{model.frame}}.}
+via \code{\link[stats]{model.frame}}. \code{data} must be provided in long format,
+i.e. with two rows per subject (or item), one for each of the measurements made with the compared methods.}
 
 \item{weights}{optional numeric vector of weights (case/frequency weights, by default).}
 
@@ -36,7 +37,15 @@ Object of class \code{batest} with elements
 \item{\code{model}}{tree model used to perform the Bland-Altman test.}
 }
 \description{
-Function to perform a Bland-Altman test of differences in method agreement. Additional functions are given for printing and plotting.
+Function to perform a Bland-Altman test of differences in method agreement
+with single measurements per subject (or item). Additional functions are
+given for printing and plotting. The function \code{\link[coat]{coat}} must
+be used in case of replicate measurements, setting the arguments
+\code{alpha = 1} and \code{maxdepth = 1L}.
+}
+\details{
+The minimum number of subjects (or items) in each of the two groups
+or samples that are passed to \code{batest} or defined by it must be three.
 }
 \section{Methods (by generic)}{
 \itemize{
@@ -51,12 +60,13 @@ Function to perform a Bland-Altman test of differences in method agreement. Addi
     stop("the MethComp package is required for this example but is not installed")
   } else q() }
 }
-## package and data (reshaped to wide format)
+## package and data
 library("coat")
-data("VitCap", package = "MethComp")
+data("scint", package = "MethComp")
+scint$DMSA <- factor(scint$meth == "DMSA")
 
 ## two-sample BA-test
-testresult <- batest(y ~ user, data = VitCap, id = "item", meth = "instrument")
+testresult <- batest(y ~ sex, data = scint, id = "item", meth = "DMSA")
 
 ## display
 testresult

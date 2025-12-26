@@ -1,44 +1,87 @@
-#' Convenience Functions for Bland-Altman Analysis
+#' Convenience Function for Bland-Altman Analysis
 #'
-#' Auxiliary functions for obtain the differences and means of a measurement
-#' pair, as used in the classic Bland-Altman analysis.
+#' Auxiliary function for preparing data in the long format for Bland-Altman analysis.
 #'
-#' @param y1,y2 numeric. Vectors of numeric measurements of the same length.
+#' @param formula symbolic description of the model of type \code{y ~ x1 + ... + xk}.
+#' The left-hand side should specify the measurements (\code{y}) for the Bland-Altman analysis.
+#' The right-hand side can specify any number of potential split variables for the tree.
+#' @param data in long format, i.e. with two or more rows per subject (or item)
+#' if one or more measurements are available per method.
+#' @param id character referring to a column in \code{data} which indicates the data rows belonging to the same subject (or item).
+#' @param meth character referring to a column in \code{data} which indicates the data rows belonging to the same method.
+#' @param replicates Does \code{data} contain replicate measurements?
+#' @param paired Are replicate measurements paired (TRUE) or unpaired (FALSE)?
 #'
-#' @return Numeric vector with the differences or means of \code{y1} and \code{y2},
-#' respectively.
+#' @return Data frame including the subject-specific components of a
+#' Bland-Altman analysis and the covariates required for modelling in \code{\link[coat]{coat.fit}}.
 #'
 #' @examples
-#' ## pair of measurements
-#' y1 <- 1:4
-#' y2 <- c(2, 2, 1, 3)
+#' \dontshow{ if(!requireNamespace("MethComp")) {
+#'   if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
+#'     stop("the MethComp package is required for this example but is not installed")
+#'   } else q() }
+#' }
+#' ### single measurements per subject (or item)
 #'
-#' ## differences and means
-#' diffs(y1, y2)
-#' means(y1, y2)
+#' ## package and data
+#' library("coat")
+#' data("scint", package = "MethComp")
+#' scint$DMSA <- factor(scint$meth == "DMSA")
+#'
+#' ## coat based on ctree()
+#' d1 <- coat.reshape(y ~ age + sex, data = scint, id = "item", meth = "DMSA", replicates = FALSE, paired = FALSE)
+#' head(d1)
+#'
+#'
+#' ### replicate measurements per subject (or item)
+#'
+#' ## data
+#' data("ox", package = "MethComp")
+#'
+#' ## coat with paired measurements and mean values as only predictor
+#' d2 <- coat.reshape(y ~ 1, data = ox, id = "item", meth = "meth", replicates = TRUE, paired = TRUE)
+#' head(d2)
+#'
 
 #' @importFrom stats lm.fit dnorm lm var sd
 
-#' @rdname diffs
+#' @rdname coat.reshape
 #' @export
-diffs <- function(y1, y2) {
-  if(NCOL(y1) != 1L || NCOL(y2) != 1L || NROW(y1) != NROW(y2)) {
-    stop("'y1' and 'y2' must be a pair of univariate measurements of the same length")
-  }
-  if(!is.numeric(y1)) y1 <- as.numeric(y1)
-  if(!is.numeric(y2)) y2 <- as.numeric(y2)
-  return(y1 - y2)
-}
+coat.reshape <- function(formula, data, id = NULL, meth = NULL, replicates = FALSE, paired = FALSE){
+  y <- all.vars(formula)[1]
+  x <- all.vars(formula)[-1]
+  data[, y] <- as.numeric(data[, y])
 
-#' @rdname diffs
-#' @export
-means <- function(y1, y2) {
-  if(NCOL(y1) != 1L || NCOL(y2) != 1L || NROW(y1) != NROW(y2)) {
-    stop("'y1' and 'y2' must be a pair of univariate measurements of the same length")
+  if (replicates) {
+    if (!paired) {
+      data <- data.frame(cbind(unique(data[, id]),
+                               c(by(data[, c(y, meth)], data[, id], function(z) diff(by(z[, y], z[, meth], mean, na.rm = TRUE)))),
+                               c(by(data[, y], data[, id], mean, na.rm = TRUE)),
+                               data[!duplicated(data[, id]), x, drop = FALSE],
+                               do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) length(na.omit(z2)))))),
+                               do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) sum(aov(z2 ~ 1)$residuals^2)))))
+      ))
+      names(data) <- c("id", "_mean_diff_", "_means_", x, "nr1", "nr2", "rss1", "rss2")
+    } else {
+      data <- data.frame(cbind(unique(data[, id]),
+                               c(by(data[, c(y, meth)], data[, id], function(z) mean(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff)))),
+                               c(by(data[, y], data[, id], mean)),
+                               data[!duplicated(data[, id]), x, drop = FALSE],
+                               as.numeric(table(data[, id]) / 2),
+                               c(by(data[, c(y, meth)], data[, id], function(z) sum(aov(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff) ~ 1)$residuals^2)))
+      ))
+      names(data) <- c("id", "_mean_diff_", "_means_", x, "nr", "rss")
+    }
   }
-  if(!is.numeric(y1)) y1 <- as.numeric(y1)
-  if(!is.numeric(y2)) y2 <- as.numeric(y2)
-  return((y1 + y2)/2)
+  else {
+    data <- data.frame(cbind(unique(data[, id]),
+                             c(by(data[, y], data[, id], diff, na.rm = TRUE)),
+                             c(by(data[, y], data[, id], mean, na.rm = TRUE)),
+                             data[!duplicated(data[, id]), x, drop = FALSE]
+    ))
+    names(data) <- c("id", "_diff_", "_means_", x)
+  }
+  return(data)
 }
 
 #' Transformation function used in \code{\link[partykit]{ctree}} to model the mean and variance as bivariate outcome. See \code{ytrafo} in \code{\link[partykit]{ctree}} for details.
@@ -138,40 +181,4 @@ batrafo.repl.pair <- function(data, weights, control, ...){
   }
 }
 
-#' Reshape function used to prepare the data.
-#'
-coat.reshape <- function(formula, data, id = NULL, meth = NULL, replicates = FALSE, paired = FALSE){
-  y <- all.vars(formula)[1]
-  x <- all.vars(formula)[-1]
 
-  if (replicates) {
-    if (!paired) {
-      data <- data.frame(cbind(unique(data[, id]),
-                               c(by(data[, c(y, meth)], data[, id], function(z) diff(by(z[, y], z[, meth], mean, na.rm = TRUE)))),
-                               c(by(data[, y], data[, id], mean, na.rm = TRUE)),
-                               data[!duplicated(data[, id]), x, drop = FALSE],
-                               do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) length(na.omit(z2)))))),
-                               do.call(cbind, by(data[, c(y, id)], data[, meth], function(z1) c(by(z1[, y], z1[, id], function(z2) sum(aov(z2 ~ 1)$residuals^2)))))
-                               ))
-      names(data) <- c("id", "_mean_diff_", "_means_", x, "nr1", "nr2", "rss1", "rss2")
-      } else {
-        data <- data.frame(cbind(unique(data[, id]),
-                                 c(by(data[, c(y, meth)], data[, id], function(z) mean(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff)))),
-                                 c(by(data[, y], data[, id], mean)),
-                                 data[!duplicated(data[, id]), x, drop = FALSE],
-                                 as.numeric(table(data[, id]) / 2),
-                                 c(by(data[, c(y, meth)], data[, id], function(z) sum(aov(apply(do.call(cbind, split(z[, y], z[, meth])), 1, diff) ~ 1)$residuals^2)))
-                                 ))
-        names(data) <- c("id", "_mean_diff_", "_means_", x, "nr", "rss")
-      }
-    }
-  else {
-    data <- data.frame(cbind(unique(data[, id]),
-                             c(by(data[, y], data[, id], diff, na.rm = TRUE)),
-                             c(by(data[, y], data[, id], mean, na.rm = TRUE)),
-                             data[!duplicated(data[, id]), x, drop = FALSE]
-                             ))
-    names(data) <- c("id", "_diff_", "_means_", x)
-    }
-  return(data)
-  }

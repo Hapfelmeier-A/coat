@@ -7,7 +7,8 @@
 #' Various methods are provided for trees fitted by \code{\link[coat]{coat}},
 #' in particular \code{print}, \code{plot} (via \pkg{grid}/\pkg{partykit}) and
 #' \code{coef}. The \code{plot} method draws Bland-Altman plots in the terminal panels by default,
-#' using the function \code{node_baplot}.
+#' using the function \code{node_baplot}. Average values and average
+#' differences are plotted in case of replicate measurements.
 #'
 #' In addition to these dedicated \code{coat} methods, further methods are inherited
 #' from \code{\link[partykit]{ctree}} or \code{\link[partykit]{mob}}, respectively,
@@ -60,12 +61,15 @@
 #'     stop("the MethComp package is required for this example but is not installed")
 #'   } else q() }
 #' }
-#' ## package and data (reshaped to wide format)
+#' ### single measurements per subject (or item)
+#'
+#' ## package and data
 #' library("coat")
 #' data("scint", package = "MethComp")
+#' scint$DMSA <- factor(scint$meth == "DMSA")
 #'
 #' ## conditional method agreement tree
-#' tr <- coat(y ~ age + sex, data = scint)
+#' tr <- coat(y ~ age + sex, data = scint, id = "item", meth = "DMSA")
 #'
 #' ## illustration of methods (including some customization)
 #'
@@ -82,7 +86,27 @@
 #' plot(tr, ip_args = list(id = FALSE),
 #'   tp_args = list(col = "slategray", id = FALSE, digits = 3, pch = 19))
 #'
-
+#'
+#' ### replicate measurements per subject (or item)
+#'
+#' ## data
+#' data("ox", package = "MethComp")
+#'
+#' ## coat with unpaired measurements and mean values as only predictor
+#' tr2 <- coat(y ~ 1, data = ox, id = "item", meth = "meth", replicates = TRUE, paired = FALSE, means = TRUE)
+#'
+#' ## printing
+#' print(tr2)
+#' print(tr2, header = FALSE, footer = FALSE)
+#'
+#' ## extracting Bland-Altman parameters
+#' coef(tr2)
+#' coef(tr2, node = 1)
+#'
+#' ## visualization (via grid with node_baplot)
+#' plot(tr2)
+#'
+#'
 #' @rdname coat-methods
 #' @method print coat
 #' @export

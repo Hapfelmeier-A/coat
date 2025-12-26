@@ -14,9 +14,9 @@ coat(
   na.action,
   weights,
   means = FALSE,
-  type = c("ctree", "mob"),
   replicates = FALSE,
   paired = FALSE,
+  type = c("ctree", "mob"),
   minsize = 10L,
   alpha = 0.05,
   minbucket = minsize,
@@ -60,11 +60,11 @@ are available per method.}
 \item{means}{logical. Should the intra-individual mean values of measurements
 be included as potential split variable?}
 
-\item{type}{character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.}
-
 \item{replicates}{Does \code{data} contain replicate measurements?}
 
 \item{paired}{Are replicate measurements paired (TRUE) or unpaired (FALSE)?}
+
+\item{type}{character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.}
 
 \item{minsize, minbucket}{integer. The minimum number of observations in a subgroup.
 Only one of the two arguments should be used (see also below).}
@@ -83,7 +83,7 @@ is used) or \code{modelparty} (if \code{\link[partykit]{mob}} is used).
 }
 \description{
 Tree models capturing the dependence of method agreement on covariates.
-The classic Bland-Altman analysis for single or replicate measurements
+The Bland-Altman analysis for single or replicate measurements per subject (or item)
 is used to model method agreement, while the covariate dependency can
 be learned either nonparametrically via conditional inference trees (CTree)
 or using model-based recursive partitioning (MOB).
@@ -104,7 +104,7 @@ i.e., divided by the sample size \eqn{n - 1}. Note that the inference in the
 MOB algorithm internally uses the maximum likelihood estimate (divided by \eqn{n})
 instead so the the fluctuation tests for parameter instability can be applied.
 
-An extension of the classic Bland-Altman analysis addresses the frequent
+An extension of the Bland-Altman analysis addresses the frequent
 cases of paired and unpaired replicate measurements per subject or item.
 Both cases are analysed in COAT using CTree with appropriate data aggregation
 to model Bias and SD at the subject/item level, with the latter being
@@ -149,12 +149,13 @@ often assumed that the underlying true values vary.
 ## package and data
 library("coat")
 data("scint", package = "MethComp")
+scint$DMSA <- factor(scint$meth == "DMSA")
 
 ## coat based on ctree()
-tr1 <- coat(y ~ age + sex, data = scint, id = "item", meth = "meth")
+tr1 <- coat(y ~ age + sex, data = scint, id = "item", meth = "DMSA")
 
 ## coat based on mob() including mean values of paired measurements as predictor
-tr2 <- coat(y ~ age + sex, data = scint, id = "item", meth = "meth", means = TRUE, type = "mob")
+tr2 <- coat(y ~ age + sex, data = scint, id = "item", meth = "DMSA", means = TRUE, type = "mob")
 
 ## display
 print(tr1)

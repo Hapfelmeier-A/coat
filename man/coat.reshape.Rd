@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{coat.reshape}
 \alias{coat.reshape}
-\title{Reshape function used to prepare the data.}
+\title{Convenience Functions for Bland-Altman Analysis}
 \usage{
 coat.reshape(
   formula,
@@ -13,6 +13,54 @@ coat.reshape(
   paired = FALSE
 )
 }
+\arguments{
+\item{formula}{symbolic description of the model of type \code{y ~ x1 + ... + xk}.
+The left-hand side should specify the measurements (\code{y}) for the Bland-Altman analysis.
+The right-hand side can specify any number of potential split variables for the tree.}
+
+\item{data}{in long format, i.e. with two or more rows per subject (or item)
+if one or more measurements are available per method.}
+
+\item{id}{character referring to a column in \code{data} which indicates the data rows belonging to the same subject (or item).}
+
+\item{meth}{character referring to a column in \code{data} which indicates the data rows belonging to the same method.}
+
+\item{replicates}{Does \code{data} contain replicate measurements?}
+
+\item{paired}{Are replicate measurements paired (TRUE) or unpaired (FALSE)?}
+}
+\value{
+Data frame including the subject-specific components of a
+Bland-Altman analysis and the covariates required for modelling in \code{\link[coat]{coat.fit}}.
+}
 \description{
-Reshape function used to prepare the data.
+Auxiliary function for preparing data in the long format for Bland-Altman analysis.
+}
+\examples{
+\dontshow{ if(!requireNamespace("MethComp")) {
+  if(interactive() || is.na(Sys.getenv("_R_CHECK_PACKAGE_NAME_", NA))) {
+    stop("the MethComp package is required for this example but is not installed")
+  } else q() }
+}
+### single measurements per subject (or item)
+
+## package and data
+library("coat")
+data("scint", package = "MethComp")
+scint$DMSA <- factor(scint$meth == "DMSA")
+
+## coat based on ctree()
+d1 <- coat.reshape(y ~ age + sex, data = scint, id = "item", meth = "DMSA", replicates = FALSE, paired = FALSE)
+head(d1)
+
+
+### replicate measurements per subject (or item)
+
+## data
+data("ox", package = "MethComp")
+
+## coat with paired measurements and mean values as only predictor
+d2 <- coat.reshape(y ~ 1, data = ox, id = "item", meth = "meth", replicates = TRUE, paired = TRUE)
+head(d2)
+
 }
