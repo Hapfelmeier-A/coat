@@ -54,11 +54,9 @@ Function to perform a Bland-Altman test of differences in method agreement. Addi
 ## package and data (reshaped to wide format)
 library("coat")
 data("VitCap", package = "MethComp")
-VitCap_wide <- reshape(VitCap, v.names = "y", timevar = "instrument",
-                       idvar = c("item", "user"), drop = "meth", direction = "wide")
 
 ## two-sample BA-test
-testresult <- batest(y.St + y.Exp ~ user, data = VitCap_wide)
+testresult <- batest(y ~ user, data = VitCap, id = "item", meth = "instrument")
 
 ## display
 testresult

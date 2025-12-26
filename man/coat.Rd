@@ -47,7 +47,13 @@ The left-hand side should specify the measurements (\code{y}) for the Bland-Altm
 The right-hand side can specify any number of potential split variables for the tree.}
 
 \item{data, subset, na.action}{arguments controlling the formula processing
-via \code{\link[stats]{model.frame}}.}
+via \code{\link[stats]{model.frame}}. \code{data} must be provided in long format,
+i.e. with two or more rows per subject (or item) if one or more measurements
+are available per method.}
+
+\item{id}{character referring to a column in \code{data} which indicates the data rows belonging to the same subject (or item).}
+
+\item{meth}{character referring to a column in \code{data} which indicates the data rows belonging to the same method.}
 
 \item{weights}{optional numeric vector of weights (case/frequency weights, by default).}
 
@@ -55,6 +61,10 @@ via \code{\link[stats]{model.frame}}.}
 be included as potential split variable?}
 
 \item{type}{character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.}
+
+\item{replicates}{Does \code{data} contain replicate measurements?}
+
+\item{paired}{Are replicate measurements paired (TRUE) or unpaired (FALSE)?}
 
 \item{minsize, minbucket}{integer. The minimum number of observations in a subgroup.
 Only one of the two arguments should be used (see also below).}
@@ -73,10 +83,10 @@ is used) or \code{modelparty} (if \code{\link[partykit]{mob}} is used).
 }
 \description{
 Tree models capturing the dependence of method agreement on covariates.
-The classic Bland-Altman analysis is used for modeling method agreement
-while the covariate dependency can be learned either nonparametrically
-via conditional inference trees (CTree) or using model-based recursive
-partitioning (MOB).
+The classic Bland-Altman analysis for single or replicate measurements
+is used to model method agreement, while the covariate dependency can
+be learned either nonparametrically via conditional inference trees (CTree)
+or using model-based recursive partitioning (MOB).
 }
 \details{
 Conditional method agreement trees (COAT) employ unbiased
@@ -88,6 +98,19 @@ or parametric model-based trees (MOB). In both cases, each subgroup is associate
 with two parameter estimates: the mean of the measurement difference (\dQuote{Bias})
 and the corresponding sample standard deviation (\dQuote{SD}) which can be
 used to construct the limits of agreement (i.e., the corresponding confidence intervals).
+
+The SD is estimated by the usual sample standard deviation in each subgroup,
+i.e., divided by the sample size \eqn{n - 1}. Note that the inference in the
+MOB algorithm internally uses the maximum likelihood estimate (divided by \eqn{n})
+instead so the the fluctuation tests for parameter instability can be applied.
+
+An extension of the classic Bland-Altman analysis addresses the frequent
+cases of paired and unpaired replicate measurements per subject or item.
+Both cases are analysed in COAT using CTree with appropriate data aggregation
+to model Bias and SD at the subject/item level, with the latter being
+decomposed into within-subject variance and between-subject variance.
+Currently, only covariates that are constant between replicate measurements
+can be used, and the first entry in \code{data} is used for model fitting.
 
 The minimum number of observations in a subgroup defaults to 10,
 so that the mean and variance of the measurement differences can be estimated
@@ -104,17 +127,11 @@ can be specified through the \code{...} argument, see
 \code{\link[partykit]{ctree_control}} and \code{\link[partykit]{mob_control}},
 respectively, for details.
 
-
-To add the means of the measurement pair as a potential splitting variable,
-there are also different equivalent strategies. The standard specification would
-be via the \code{means} argument: \code{y ~ x1 + ..., means = TRUE}.
-Alternatively, the user can also extend the formula argument via
-\code{y ~ x1 + ... + means(y1, y2)}.
-
-The SD is estimated by the usual sample standard deviation in each subgroup,
-i.e., divided by the sample size \eqn{n - 1}. Note that the inference in the
-MOB algorithm internally uses the maximum likelihood estimate (divided by \eqn{n})
-instead so the the fluctuation tests for parameter instability can be applied.
+Mean values of measurements can be added as a potential splitting variable
+via the \code{means} argument, using the standard specification
+\code{y ~ x1 + ..., means = TRUE}. It may not be appropriate to calculate
+mean values across paired replicate measurements, as in such cases it is
+often assumed that the underlying true values vary.
 }
 \section{Functions}{
 \itemize{
@@ -127,7 +144,7 @@ instead so the the fluctuation tests for parameter instability can be applied.
     stop("the MethComp package is required for this example but is not installed")
   } else q() }
 }
-### single measurements per item
+### single measurements per subject (or item)
 
 ## package and data
 library("coat")
@@ -152,10 +169,35 @@ plot(tr1, tp_args = list(
   xscale = c(0, 150), linecol = "deeppink",
   confint = TRUE, B = 250, cilevel = 0.5, cicol = "gold"
 ))
+
+
+### replicate measurements per subject (or item)
+
+## data
+data("ox", package = "MethComp")
+
+## coat with paired measurements and mean values as only predictor
+tr3 <- coat(y ~ 1, data = ox, id = "item", meth = "meth", replicates = TRUE, paired = TRUE, means = TRUE)
+
+## same coat, but treating measurements as unpaired (exchangeable)
+tr4 <- coat(y ~ 1, data = ox, id = "item", meth = "meth", replicates = TRUE, paired = FALSE, means = TRUE)
+
+## display
+print(tr3)
+plot(tr3)
+
+print(tr4)
+plot(tr4)
+
 }
 \references{
 Karapetyan S, Zeileis A, Henriksen A, Hapfelmeier A (2025).
 \dQuote{Tree models for assessing covariate-dependent method agreement with an application to physical activity measurements.}
 Journal of the Royal Statistical Society Series C: Applied Statistics, Volume 74, Issue 3, June 2025, Pages 775–799.
 \doi{10.1093/jrsssc/qlae077}
+
+Karapetyan S, Zeileis A, Flick M, Saugel B, Hapfelmeier A (2026).
+\dQuote{Tree models for covariate-dependent method agreement with repeated measurements.}
+TBD, Volume XXX, Issue XXX, XXX 2026, Pages XXX–XXX.
+\doi{XXX}
 }

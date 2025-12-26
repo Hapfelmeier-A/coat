@@ -143,6 +143,7 @@ batrafo.repl.pair <- function(data, weights, control, ...){
 coat.reshape <- function(formula, data, id = NULL, meth = NULL, replicates = FALSE, paired = FALSE){
   y <- all.vars(formula)[1]
   x <- all.vars(formula)[-1]
+
   if (replicates) {
     if (!paired) {
       data <- data.frame(cbind(unique(data[, id]),
