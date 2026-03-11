@@ -232,11 +232,6 @@ coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, t
   ## fit tree
   rval <- eval(m, parent.frame())
 
-  ## informative warning if tree considered splitting at all
-  if(is.null(rval$node$split) && (is.null(rval$node$info) || is.null(rval$node$info$test))) {
-    message("Info: No splits were examined and performed due to the selected hyperparameters (‘minsize’, ‘minsplit’, ...). Consider other settings.")
-  }
-
   ## unify output
   rval$info$call <- cl
   class(rval) <- c("coat", class(rval))
@@ -249,4 +244,5 @@ coat.fit <- function(formula, data, subset, na.action, weights, means = FALSE, t
 
   return(rval)
 }
+
 
