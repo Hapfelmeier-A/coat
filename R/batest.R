@@ -51,6 +51,7 @@
 #' \item{\code{test}}{result of the Bland-Altman test.}
 #' \item{\code{model}}{tree model used to perform the Bland-Altman test.}
 #'
+#' @importFrom stats update as.formula
 #' @importFrom partykit character_split sctest.constparty
 #'
 #' @export
