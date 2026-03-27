@@ -43,7 +43,7 @@
 #' head(d2)
 #'
 
-#' @importFrom stats lm.fit dnorm lm var sd
+#' @importFrom stats lm.fit dnorm lm var sd aov
 
 #' @rdname coat.reshape
 #' @export
