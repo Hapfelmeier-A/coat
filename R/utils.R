@@ -153,6 +153,7 @@ batrafo.var <- function(data, weights, control, ...) {
 }
 
 #'Transformation function for unpaired measurements
+#' @noRd
 batrafo.repl.unpair <- function(data, weights, control, ...){
   y <- data$data[, data$variables$y, drop = TRUE]
   n <- nrow(data$data)
@@ -168,6 +169,7 @@ batrafo.repl.unpair <- function(data, weights, control, ...){
 }
 
 #' Transformation function for paired measurements
+#' @noRd
 batrafo.repl.pair <- function(data, weights, control, ...){
   y <- data$data[, data$variables$y, drop = TRUE]
   n <- nrow(data$data)
