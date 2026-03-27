@@ -18,11 +18,12 @@
 #' @param weights optional numeric vector of weights (case/frequency weights, by default).
 #' @param means logical. Should the intra-individual mean values of measurements
 #' be included as potential split variable?
-#' @param replicates Does \code{data} contain replicate measurements?
-#' @param paired Are replicate measurements paired (TRUE) or unpaired (FALSE)?
+#' @param replicates logical. Does \code{data} contain replicate measurements?
+#' @param paired logical. Are replicate measurements paired (TRUE) or unpaired (FALSE)?
 #' @param type character string specifying the type of tree to be fit. Either \code{"ctree"} (default) or \code{"mob"}.
 #' @param minsize,minbucket integer. The minimum number of observations in a subgroup.
 #' Only one of the two arguments should be used (see also below).
+#' @param alpha numeric. Significance level for split tests. The default value is 0.05.
 #' @param minsplit integer. The minimum number of observations to consider splitting.
 #' Must be at least twice the minimal subgroup size (\code{minsplit} or \code{minbucket}).
 #' If set to \code{NULL} (the default) it is set to be at least 2.5 times the minimal
