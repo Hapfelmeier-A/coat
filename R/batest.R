@@ -12,6 +12,8 @@
 #' @param data,subset,na.action arguments controlling the formula processing
 #' via \code{\link[stats]{model.frame}}. \code{data} must be provided in long format,
 #' i.e. with two rows per subject (or item), one for each of the measurements made with the compared methods.
+#' @param id character referring to a column in \code{data} which indicates the data rows belonging to the same subject (or item).
+#' @param meth character referring to a column in \code{data} which indicates the data rows belonging to the same method.
 #' @param weights optional numeric vector of weights (case/frequency weights, by default).
 #' @param x an object as returned by \code{\link[coat]{batest}}.
 #' @param digits a numeric specifying the number of digits to display.
