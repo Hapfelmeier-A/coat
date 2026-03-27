@@ -44,7 +44,6 @@
 #' ## display
 #' testresult
 #' print(testresult, digits = 1, type = "both")
-#' plot(testresult)
 #'
 #' @return Object of class \code{batest} with elements
 #' \item{\code{test}}{result of the Bland-Altman test.}
